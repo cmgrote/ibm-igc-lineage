@@ -1,0 +1,50 @@
+{
+  "name": "ibm-igc-lineage",
+  "version": "0.0.2",
+  "description": "Library to use IBM Information Governance Catalog lineage",
+  "main": "./index.js",
+  "files": [
+    "index.js",
+    "utils",
+    "samples",
+    "LICENSE"
+  ],
+  "dependencies": {
+    "xmldom": ">=0.1.22",
+    "xpath": ">=0.0.23"
+  },
+  "engines": {
+    "node": ">=4.2.4"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "ibm",
+    "igc",
+    "lineage",
+    "information server",
+    "information governance catalog",
+    "data lineage",
+    "flow document",
+    "flow xml"
+  ],
+  "author": {
+    "name": "IBM Corp."
+  },
+  "contributors": [
+    {
+      "name": "Christopher Grote",
+      "email": "christopher.grote@uk.ibm.com"
+    }
+  ],
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.ibm.com/christopher-grote/ibm-igc-lineage.git"
+  },
+  "bugs": {
+    "url": "https://github.ibm.com/christopher-grote/ibm-igc-lineage/issues"
+  },
+  "homepage": "https://github.ibm.com/christopher-grote/ibm-igc-lineage"
+}
