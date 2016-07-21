@@ -1,4 +1,4 @@
-/**
+/***
  * Copyright 2016 IBM Corp. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,6 +12,15 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ */
+
+/**
+ * @file Re-usable functions for handling lineage flow documents (XML)
+ * @example
+ * // parses an XML flow document held in 'xmlString' as a string
+ * var igclineage = require('ibm-igc-lineage');
+ * var fh = new igclineage.FlowHandler();
+ * fh.parseXML(xmlString);
  */
 
 const xmldom = require('xmldom');
@@ -201,7 +210,7 @@ FlowHandler.prototype = {
    * Gets the ID of the source repository that is mapped to the provided DataStage target
    *
    * @function
-   * @see getEntryFlows
+   * @see FlowHandler#getEntryFlows
    * @param {FlowList} entryFlows - the set of ENTRY flows
    * @param {string} DSSourceId - the DataStage target (targetID) of the ENTRY flow
    * @returns {string} the mapped source repository (sourceID) of the ENTRY flow
@@ -218,7 +227,7 @@ FlowHandler.prototype = {
    * Gets the ID of the target repository that is mapped from the provided DataStage source
    *
    * @function
-   * @see getExitFlows
+   * @see FlowHandler#getExitFlows
    * @param {FlowList} exitFlows - the set of EXIT flows
    * @param {string} DSTargetId - the DataStage source (sourceID) of the EXIT flow
    * @returns {string} the mapped target repository (targetID) of the EXIT flow
@@ -236,7 +245,7 @@ FlowHandler.prototype = {
    * Gets the identity string (externalID) for the provided database table
    *
    * @function
-   * @see getParentAssetId
+   * @see FlowHandler#getParentAssetId
    * @param {string} tblName - the name of the database table
    * @param {string} schemaId - the ID of the parent database schema
    * @returns {string}
@@ -262,7 +271,7 @@ FlowHandler.prototype = {
    * Gets the identity string (externalID) for the provided database column
    *
    * @function
-   * @see getParentAssetId
+   * @see FlowHandler#getParentAssetId
    * @param {string} colName - the name of the database column
    * @param {string} tableId - the ID of the parent database table
    * @returns {string}
@@ -280,7 +289,7 @@ FlowHandler.prototype = {
    * Gets the database column identity string (externalID) from an existing database table identity string
    *
    * @function
-   * @see getTableIdentity
+   * @see FlowHandler#getTableIdentity
    * @param {string} colName - the name of the database column
    * @param {string} tableIdentity - the identity string (externalID) of the parent database table
    * @returns {string}
@@ -326,9 +335,9 @@ FlowHandler.prototype = {
    * Adds a flow to the flow XML
    *
    * @function
-   * @see getEntryFlows
-   * @see getExitFlows
-   * @see getSystemFlows
+   * @see FlowHandler#getEntryFlows
+   * @see FlowHandler#getExitFlows
+   * @see FlowHandler#getSystemFlows
    * @param {FlowList} flowsSection - the flows area into which to add the flow
    * @param {Flow} existingFlow - an existing flow to update or replace
    * @param {string} sourceIDs - the sourceIDs to use in the flow mapping
@@ -360,8 +369,8 @@ FlowHandler.prototype = {
    * Retrieves the flow XML, including any modifications that have been made (added assets, flows)
    *
    * @function
-   * @see addAsset
-   * @see addFlow
+   * @see FlowHandler#addAsset
+   * @see FlowHandler#addFlow
    * @returns {string} the full XML of the flow document
    */
   getCustomisedXML: function() {
