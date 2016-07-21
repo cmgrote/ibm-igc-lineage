@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-/**
+/***
  * Copyright 2016 IBM Corp. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,12 +16,17 @@
  * limitations under the License.
  */
 
-//-------------------------------------------------------------------------------------------
-//
-// Example automation of lineage customisation for jobs that either normalise or de-normalise
-// column-level data, and where the ultimate source / target column name are the same
-//
-//-------------------------------------------------------------------------------------------
+/**
+ * @file Example automation of lineage customisation for jobs that either normalise or de-normalise column-level data, and where the ultimate source / target column name are the same
+ * @license Apache-2.0
+ * @requires ibm-igc-rest
+ * @requires ibm-igc-lineage
+ * @param f {string} - XML file for which to customise lineage
+ * @example
+ * // creates customised lineage flow XML into /data/semanticLineage/mappedFlows/output/prjName__jobName.xml and re-detects lineage for the job
+ * ./createColumnLevelPivots.js -f /data/semanticLineage/originalFlows/prjName__jobName.xml -r columnRIDs.json -d hostname:9445 -u isadmin -p isadmin
+ * @see getLineageCustomisationRIDs.js
+ */
 
 const fs = require('fs-extra');
 const pd = require('pretty-data').pd;
@@ -277,7 +282,7 @@ function outputCustomXML(sFilename) {
   var xmlOut = fh.getCustomisedXML();
   var options = {
     "encoding": 'utf8',
-    "mode": 0644,
+    "mode": 0o644,
     "flag": 'w'
   }
   fs.writeFileSync("/data/semanticLineage/mappedFlows/output/" + sFilename, pd.xml(xmlOut), options);

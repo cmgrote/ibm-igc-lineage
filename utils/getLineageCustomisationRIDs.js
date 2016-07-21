@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-/**
+/***
  * Copyright 2016 IBM Corp. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,12 +16,14 @@
  * limitations under the License.
  */
 
-//-------------------------------------------------------------------------------------------
-//
-// Retrieves all RIDs from IGC (for stage columns)
-// where the database column has the label "Needs Custom Lineage"
-//
-//-------------------------------------------------------------------------------------------
+/**
+ * @file Retrieves all RIDs from IGC (for stage columns) where the database column has then label "Needs Custom Lineage"
+ * @license Apache-2.0
+ * @requires ibm-igc-rest
+ * @example
+ * // creates a file columnRIDs.json
+ * ./getLineageCustomisationRIDs.js -f columnRIDs.json -d hostname:9445 -u isadmin -p isadmin
+ */
 
 const fs = require('fs-extra');
 const pd = require('pretty-data').pd;
@@ -133,7 +135,7 @@ function outputRIDs(bMinify) {
 
   var options = {
     "encoding": 'utf8',
-    "mode": 0644,
+    "mode": 0o644,
     "flag": 'w'
   }
   fs.writeFileSync(outputFile, output, options);
