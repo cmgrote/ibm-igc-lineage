@@ -21,6 +21,7 @@
  * @license Apache-2.0
  * @requires ibm-igc-rest
  * @requires ibm-igc-lineage
+ * @requires yargs
  * @param f {string} - XML file for which to customise lineage
  * @example
  * // creates customised lineage flow XML into /data/semanticLineage/mappedFlows/output/prjName__jobName.xml and re-detects lineage for the job

@@ -20,6 +20,7 @@
  * @file Retrieves all RIDs from IGC (for stage columns) where the database column has then label "Needs Custom Lineage"
  * @license Apache-2.0
  * @requires ibm-igc-rest
+ * @requires yargs
  * @example
  * // creates a file columnRIDs.json
  * ./getLineageCustomisationRIDs.js -f columnRIDs.json -d hostname:9445 -u isadmin -p isadmin
