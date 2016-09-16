@@ -16,6 +16,8 @@
  * limitations under the License.
  */
 
+"use strict";
+
 /**
  * @file Retrieves all RIDs from IGC (for stage columns) where the database column has then label "Needs Custom Lineage"
  * @license Apache-2.0
@@ -28,11 +30,11 @@
 
 const fs = require('fs-extra');
 const pd = require('pretty-data').pd;
-var igcrest = require('ibm-igc-rest');
+const igcrest = require('ibm-igc-rest');
 
 // Command-line setup
-var yargs = require('yargs');
-var argv = yargs
+const yargs = require('yargs');
+const argv = yargs
     .usage('Usage: $0 -f <path> -d <host>:<port> -u <user> -p <password>')
     .option('f', {
       alias: 'file',
@@ -48,12 +50,14 @@ var argv = yargs
     .option('u', {
       alias: 'deployment-user',
       describe: 'User for invoking IGC REST',
-      demand: true, requiresArg: true, type: 'string'
+      demand: true, requiresArg: true, type: 'string',
+      default: "isadmin"
     })
     .option('p', {
       alias: 'deployment-user-password',
       describe: 'Password for invoking IGC REST',
-      demand: true, requiresArg: true, type: 'string'
+      demand: true, requiresArg: true, type: 'string',
+      default: "isadmin"
     })
     .help('h')
     .alias('h', 'help')
@@ -61,12 +65,12 @@ var argv = yargs
     .argv;
 
 // Base settings
-var outputFile = argv.file;
-var host_port = argv.domain.split(":");
+const outputFile = argv.file;
+const host_port = argv.domain.split(":");
 igcrest.setAuth(argv.deploymentUser, argv.deploymentUserPassword);
 igcrest.setServer(host_port[0], host_port[1]);
 
-var customLineageColsQ = {
+const customLineageColsQ = {
   "pageSize": "10000",
   "properties": ["name", "read_by_(design)", "written_by_(design)"],
   "types": ["database_column"],
@@ -81,22 +85,22 @@ var customLineageColsQ = {
       }
     ]
   }
-}
+};
 
-var lineageCols = {};
+const lineageCols = {};
 
 igcrest.search(customLineageColsQ, function (err, resSearch) {
   
-  for (var i = 0; i < resSearch.items.length; i++) {
+  for (let i = 0; i < resSearch.items.length; i++) {
     
-    var dbCol = resSearch.items[i];
-    var dbColName = dbCol._name;
+    const dbCol = resSearch.items[i];
+    const dbColName = dbCol._name;
     console.log("Found column: " + dbColName);
     
     if (dbCol.hasOwnProperty("read_by_(design)")) {
-      for (var j = 0; j < dbCol["read_by_(design)"].items.length; j++) {
-        var stgColRead = dbCol["read_by_(design)"].items[j];
-        var stgRID = stgColRead._id;
+      for (let j = 0; j < dbCol["read_by_(design)"].items.length; j++) {
+        const stgColRead = dbCol["read_by_(design)"].items[j];
+        const stgRID = stgColRead._id;
         console.log("... read by: " + stgRID);
         lineageCols[stgRID] = {};
         lineageCols[stgRID].name = stgColRead._name;
@@ -107,9 +111,9 @@ igcrest.search(customLineageColsQ, function (err, resSearch) {
     }
     
     if (dbCol.hasOwnProperty("written_by_(design)")) {
-      for (var j = 0; j < dbCol["written_by_(design)"].items.length; j++) {
-        var stgColWritten = dbCol["written_by_(design)"].items[j];
-        var stgRID = stgColWritten._id;
+      for (let j = 0; j < dbCol["written_by_(design)"].items.length; j++) {
+        const stgColWritten = dbCol["written_by_(design)"].items[j];
+        const stgRID = stgColWritten._id;
         console.log("... written by: " + stgRID);
         lineageCols[stgRID] = {};
         lineageCols[stgRID].name = stgColWritten._name;
@@ -127,18 +131,18 @@ igcrest.search(customLineageColsQ, function (err, resSearch) {
 
 function outputRIDs(bMinify) {
 
-  var output = "";
+  let output = "";
   if (bMinify) {
     output = pd.jsonmin(JSON.stringify(lineageCols));
   } else {
     output = pd.json(JSON.stringify(lineageCols));
   }
 
-  var options = {
+  const options = {
     "encoding": 'utf8',
     "mode": 0o644,
     "flag": 'w'
-  }
+  };
   fs.writeFileSync(outputFile, output, options);
 
 }

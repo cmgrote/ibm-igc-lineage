@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+"use strict";
+
 /**
  * @file Re-usable functions for handling lineage flow documents (XML) and operational metadata (OMD XML)
  * @license Apache-2.0
@@ -37,12 +39,12 @@
 
 const xmldom = require('xmldom');
 const xpath = require('xpath');
-var selectFlowDoc = xpath.useNamespaces({"flowdoc": "http://www.ibm.com/iis/flow-doc"});
+const selectFlowDoc = xpath.useNamespaces({"flowdoc": "http://www.ibm.com/iis/flow-doc"});
 
 /**
  * @namespace
  */
-function FlowHandler() {};
+function FlowHandler() {}
 FlowHandler.prototype = {
 
   doc: null,
@@ -60,8 +62,8 @@ FlowHandler.prototype = {
   parseXML: function(xml) {
     this.xmlOriginal = xml;
     this.doc = new xmldom.DOMParser().parseFromString(xml);
-    eProject = this.getAssetByClass("DataStageX.DSProject");
-    eJob = this.getAssetByClass("DataStageX.x_JOB_PARALLEL");
+    this.eProject = this.getAssetByClass("DataStageX.DSProject");
+    this.eJob = this.getAssetByClass("DataStageX.x_JOB_PARALLEL");
   },
 
   /**
@@ -136,7 +138,7 @@ FlowHandler.prototype = {
    * @returns {Asset}
    */
   getProjectNode: function() {
-    return eProject;
+    return this.eProject;
   },
   /**
    * Gets the Job details
@@ -145,7 +147,7 @@ FlowHandler.prototype = {
    * @returns {Asset}
    */
   getJobNode: function() {
-    return eJob;
+    return this.eJob;
   },
   /**
    * Gets the details for ENTRY flows (data store-to-DataStage)
@@ -228,8 +230,8 @@ FlowHandler.prototype = {
    * @returns {string} the mapped source repository (sourceID) of the ENTRY flow
    */
   getRepositoryIdFromDSSourceId: function(entryFlows, DSSourceId) {
-    var element = this._getElementByContext("flowdoc:subFlows/flowdoc:flow[@targetIDs='" + DSSourceId + "']", entryFlows);
-    if (element != null) {
+    const element = this._getElementByContext("flowdoc:subFlows/flowdoc:flow[@targetIDs='" + DSSourceId + "']", entryFlows);
+    if (element !== null) {
       return element.getAttribute("sourceIDs");
     } else {
       return null;
@@ -245,8 +247,8 @@ FlowHandler.prototype = {
    * @returns {string} the mapped target repository (targetID) of the EXIT flow
    */
   getRepositoryIdFromDSTargetId: function(exitFlows, DSTargetId) {
-    var element = this._getElementByContext("flowdoc:subFlows/flowdoc:flow[@sourceIDs='" + DSTargetId + "']", exitFlows);
-    if (element != null) {
+    const element = this._getElementByContext("flowdoc:subFlows/flowdoc:flow[@sourceIDs='" + DSTargetId + "']", exitFlows);
+    if (element !== null) {
       return element.getAttribute("targetIDs");
     } else {
       return null;
@@ -263,21 +265,21 @@ FlowHandler.prototype = {
    * @returns {string}
    */
   getTableIdentity: function(tblName, schemaId) {
-    var eSchema = this.getAssetById(schemaId);
-    var schemaName = this.getAssetName(eSchema);
-    var dcnId = this.getParentAssetId(eSchema);
-    var eDCN = this.getAssetById(dcnId);
-    var dcnName = this.getAssetName(eDCN);
-    var creationTool = this._getElementByContext("flowdoc:attribute[@name='creationTool']", eDCN).getAttribute("value");
-    var hostId = this.getParentAssetId(eDCN);
-    var eHost = this.getAssetById(hostId);
-    var hostName = this.getAssetName(eHost);
-    return "_ngo:table:"
-      + "_ngo:db:" + hostName.toLowerCase()
-      + "::" + dcnName.toLowerCase()
-      + "::" + creationTool.toLowerCase()
-      + "::" + schemaName.toLowerCase()
-      + "::" + tblName.toLowerCase();
+    const eSchema = this.getAssetById(schemaId);
+    const schemaName = this.getAssetName(eSchema);
+    const dcnId = this.getParentAssetId(eSchema);
+    const eDCN = this.getAssetById(dcnId);
+    const dcnName = this.getAssetName(eDCN);
+    const creationTool = this._getElementByContext("flowdoc:attribute[@name='creationTool']", eDCN).getAttribute("value");
+    const hostId = this.getParentAssetId(eDCN);
+    const eHost = this.getAssetById(hostId);
+    const hostName = this.getAssetName(eHost);
+    return "_ngo:table:" +
+      "_ngo:db:" + hostName.toLowerCase() +
+      "::" + dcnName.toLowerCase() +
+      "::" + creationTool.toLowerCase() +
+      "::" + schemaName.toLowerCase() +
+      "::" + tblName.toLowerCase();
   },
   /**
    * Gets the identity string (externalID) for the provided database column
@@ -289,13 +291,13 @@ FlowHandler.prototype = {
    * @returns {string}
    */
   getColumnIdentity: function(colName, tableId) {
-    var eTable = this.getAssetById(tableId);
-    var tableName = this.getAssetName(eTable);
-    var schemaId = this.getParentAssetId(eTable);
-    var tableIdentity = this.getTableIdentity(tableName, schemaId);
-    return "_ngo:"
-      + colName.toLowerCase()
-      + tableIdentity.replace("_ngo:table:", "::");
+    const eTable = this.getAssetById(tableId);
+    const tableName = this.getAssetName(eTable);
+    const schemaId = this.getParentAssetId(eTable);
+    const tableIdentity = this.getTableIdentity(tableName, schemaId);
+    return "_ngo:" +
+      colName.toLowerCase() +
+      tableIdentity.replace("_ngo:table:", "::");
   },
   /**
    * Gets the database column identity string (externalID) from an existing database table identity string
@@ -307,9 +309,9 @@ FlowHandler.prototype = {
    * @returns {string}
    */
   getColumnIdentityFromTableIdentity: function(colName, tableIdentity) {
-    return "_ngo:"
-      + colName.toLowerCase()
-      + tableIdentity.replace("_ngo:table:", "::");
+    return "_ngo:" +
+      colName.toLowerCase() +
+      tableIdentity.replace("_ngo:table:", "::");
   },
 
   /**
@@ -326,18 +328,18 @@ FlowHandler.prototype = {
    * @param {string} parentId - the unique ID of the asset's parent within the XML flow document
    */
   addAsset: function(className, name, rid, xmlId, matchByName, virtualOnly, parentType, parentId) {
-    var eAsset = this.doc.createElement("asset");
+    const eAsset = this.doc.createElement("asset");
     eAsset.setAttribute("class", className);
     eAsset.setAttribute("repr", name);
     eAsset.setAttribute("externalID", rid);
     eAsset.setAttribute("ID", xmlId);
     eAsset.setAttribute("matchByName", matchByName);
     eAsset.setAttribute("virtualOnly", virtualOnly);
-    var eAttr = this.doc.createElement("attribute");
+    const eAttr = this.doc.createElement("attribute");
     eAttr.setAttribute("name", "name");
     eAttr.setAttribute("value", name);
     eAsset.appendChild(eAttr);
-    var eRef = this.doc.createElement("reference");
+    const eRef = this.doc.createElement("reference");
     eRef.setAttribute("name", parentType);
     eRef.setAttribute("assetIDs", parentId);
     eAsset.appendChild(eRef);
@@ -358,15 +360,15 @@ FlowHandler.prototype = {
    * @param {boolean} bReplace - true if any existing flow should be replaced, false if the mappings should be appended
    */
   addFlow: function(flowsSection, existingFlow, sourceIDs, targetIDs, comment, bReplace) {
-    if (existingFlow == null) {
-      var eMapping = this.doc.createElement("flow");
+    if (existingFlow === null) {
+      const eMapping = this.doc.createElement("flow");
       eMapping.setAttribute("sourceIDs", sourceIDs);
       eMapping.setAttribute("targetIDs", targetIDs);
       eMapping.setAttribute("comment", comment);
       flowsSection.getElementsByTagName("subFlows").item(0).appendChild(eMapping);
     } else {
-      var sExistingTargets = existingFlow.getAttribute("targetIDs");
-      var sExistingComment = existingFlow.getAttribute("comment");
+      const sExistingTargets = existingFlow.getAttribute("targetIDs");
+      const sExistingComment = existingFlow.getAttribute("comment");
       if (bReplace) {
         existingFlow.setAttribute("targetIDs", targetIDs);
         existingFlow.setAttribute("comment", comment);
@@ -394,7 +396,7 @@ FlowHandler.prototype = {
 /**
  * @namespace
  */
-function OMDHandler() {};
+function OMDHandler() {}
 OMDHandler.prototype = {
   
   doc: null,
@@ -522,7 +524,7 @@ OMDHandler.prototype = {
    * @returns {DataCollection}
    */
   getDataCollectionForEvent: function(e) {
-    var refDC = this._getAttributeByContext("SoftwareResourceLocator/@ReferenceDC", e);
+    const refDC = this._getAttributeByContext("SoftwareResourceLocator/@ReferenceDC", e);
     return this.getElement("/Run/DataSchema/DataCollection[@Ident='" + refDC + "']");
   },
 
@@ -574,10 +576,10 @@ OMDHandler.prototype = {
    * @returns {string}
    */
   getDataResourceIdentity: function(dataResource) {
-    var host = this.getDataResourceHost(dataResource);
-    var store = this.getDataResourceStore(dataResource);
-    var schema = this.getDataResourceSchema(dataResource);
-    var table = this.getDataResourceTable(dataResource);
+    const host = this.getDataResourceHost(dataResource);
+    const store = this.getDataResourceStore(dataResource);
+    const schema = this.getDataResourceSchema(dataResource);
+    const table = this.getDataResourceTable(dataResource);
     return host + "/" + store + "/" + schema + "/" + table;
   },
 
@@ -589,10 +591,10 @@ OMDHandler.prototype = {
    * @returns {string[]}
    */
   getDataCollectionColumns: function(dataCollection) {
-    var eFields = this._getElementsByContext("DataField", dataCollection);
-    var aFields = [];
-    for (var i = 0; i < eFields.length; i++) {
-      var sColName = this._getAttributeByContext("@Name", eFields[i]);
+    const eFields = this._getElementsByContext("DataField", dataCollection);
+    const aFields = [];
+    for (let i = 0; i < eFields.length; i++) {
+      const sColName = this._getAttributeByContext("@Name", eFields[i]);
       aFields.push(sColName);
     }
     return aFields;
@@ -612,31 +614,31 @@ OMDHandler.prototype = {
    */
   replaceHostname: function(targetHostname) {
     
-    var eDeployment = this.getExecutable();
-    var eDeploymentHost = this._getHostElement(eDeployment);
+    const eDeployment = this.getExecutable();
+    const eDeploymentHost = this._getHostElement(eDeployment);
     eDeploymentHost.setAttribute("Name", targetHostname);
 
-    var elParameters = this.getElements("/Run/ActualParameters/ActualParameter");
-    for (var i = 0; i < elParameters.length; i++) {
-      var eParam = elParameters[i];
-      var eParamHost = this._getHostElement(this._getElementByContext("SoftwareResourceLocator", eParam));
-      var sFormalParameter = this._getAttributeByContext("@Name", this._getElementByContext("SoftwareResourceLocator/LocatorComponent[@Class='FormalParameter']", eParam));
+    const elParameters = this.getElements("/Run/ActualParameters/ActualParameter");
+    for (let i = 0; i < elParameters.length; i++) {
+      const eParam = elParameters[i];
+      const eParamHost = this._getHostElement(this._getElementByContext("SoftwareResourceLocator", eParam));
+      const sFormalParameter = this._getAttributeByContext("@Name", this._getElementByContext("SoftwareResourceLocator/LocatorComponent[@Class='FormalParameter']", eParam));
       // If the parameter is for SourceConnectionString or TargetConnectionString, we'll pre-pend the parameter with the old hostname to create
       // a unique connection string (which we can then use in connection mapping for lineage purposes)
       if (sFormalParameter === "SourceConnectionString" || sFormalParameter === "TargetConnectionString") {
-        var originalHost = this._getAttributeByContext("@Name", eParamHost);
-        var sValue = this._getAttributeByContext("@Value", eParam);
+        const originalHost = this._getAttributeByContext("@Name", eParamHost);
+        const sValue = this._getAttributeByContext("@Value", eParam);
         eParam.setAttribute("Value", originalHost + "__" + sValue);
       }
       eParamHost.setAttribute("Name", targetHostname);
     }
 
-    var eReadEvent = this.getReadEvent();
-    var eReadEventHost = this._getHostElement(this._getElementByContext("DataResourceLocator", eReadEvent));
+    const eReadEvent = this.getReadEvent();
+    const eReadEventHost = this._getHostElement(this._getElementByContext("DataResourceLocator", eReadEvent));
     eReadEventHost.setAttribute("Name", targetHostname);
 
-    var eWriteEvent = this.getWriteEvent();
-    var eWriteEventHost = this._getHostElement(this._getElementByContext("DataResourceLocator", eWriteEvent));
+    const eWriteEvent = this.getWriteEvent();
+    const eWriteEventHost = this._getHostElement(this._getElementByContext("DataResourceLocator", eWriteEvent));
     eWriteEventHost.setAttribute("Name", targetHostname);
 
   },
@@ -654,7 +656,7 @@ OMDHandler.prototype = {
 
 };
 
-if (typeof require == 'function') {
+if (typeof require === 'function') {
   exports.FlowHandler = FlowHandler;
   exports.OMDHandler = OMDHandler;
 }
