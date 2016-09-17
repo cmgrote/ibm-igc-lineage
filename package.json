@@ -1,10 +1,11 @@
 {
   "name": "ibm-igc-lineage",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Library to use IBM Information Governance Catalog lineage",
   "main": "./index.js",
   "files": [
     "index.js",
+    "classes",
     "utils",
     "samples",
     "LICENSE"

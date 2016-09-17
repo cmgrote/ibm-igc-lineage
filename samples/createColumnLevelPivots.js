@@ -16,6 +16,8 @@
  * limitations under the License.
  */
 
+"use strict";
+
 /**
  * @file Example automation of lineage customisation for jobs that either normalise or de-normalise column-level data, and where the ultimate source / target column name are the same
  * @license Apache-2.0
@@ -31,12 +33,12 @@
 
 const fs = require('fs-extra');
 const pd = require('pretty-data').pd;
-var igcrest = require('ibm-igc-rest');
-var igclineage = require('ibm-igc-lineage');
+const igcrest = require('ibm-igc-rest');
+const igclineage = require('ibm-igc-lineage');
 
 // Command-line setup
-var yargs = require('yargs');
-var argv = yargs
+const yargs = require('yargs');
+const argv = yargs
     .usage('Usage: $0 -f <path> -r <path> -d <host>:<port> -u <user> -p <password>')
     .option('f', {
       alias: 'file',
@@ -70,46 +72,46 @@ var argv = yargs
     .argv;
 
 // Base settings
-var inputFile = argv.file;
-var mapFile = argv.rids;
-var host_port = argv.domain.split(":");
+const inputFile = argv.file;
+const mapFile = argv.rids;
+const host_port = argv.domain.split(":");
 igcrest.setAuth(argv.deploymentUser, argv.deploymentUserPassword);
 igcrest.setServer(host_port[0], host_port[1]);
 
-var pivotColumns = JSON.parse(fs.readFileSync(mapFile, 'utf8'));
-var bHasBeenCustomised = false;
+const pivotColumns = JSON.parse(fs.readFileSync(mapFile, 'utf8'));
+let bHasBeenCustomised = false;
 
 // To keep generated IDs unique and retrievable
-var id_gen = 0;
-var ds_rid_gen = 0;
-var hmObjectIdentitiesToIds = {};
+let id_gen = 0;
+let ds_rid_gen = 0;
+const hmObjectIdentitiesToIds = {};
 
 // Read input XML
-var xmldata = fs.readFileSync(inputFile, 'utf8');
-var fh = new igclineage.FlowHandler();
+const xmldata = fs.readFileSync(inputFile, 'utf8');
+const fh = new igclineage.FlowHandler();
 fh.parseXML(xmldata.toString());
 
 // ... get basic information from XML
-var eProj = fh.getProjectNode();
-var eJob = fh.getJobNode();
+const eProj = fh.getProjectNode();
+const eJob = fh.getJobNode();
 console.log("Customising lineage for: " + fh.getAssetName(eProj) + ", " + fh.getAssetName(eJob) + " (" + fh.getAssetRID(eJob) + ")");
 
-var eEntryFlows = fh.getEntryFlows();
-var eExitFlows = fh.getExitFlows();
-var eSystemFlows = fh.getSystemFlows();
+const eEntryFlows = fh.getEntryFlows();
+const eExitFlows = fh.getExitFlows();
+const eSystemFlows = fh.getSystemFlows();
 
 // Kick-off the automated customisation...
-var innerFlows = fh.getSubflows(eSystemFlows);
-for (var i = 0; i < innerFlows.length; i++) {
-  var eInnerFlow = innerFlows[i];
-  var sSources = eInnerFlow.getAttribute("sourceIDs");
-  var sTargets = eInnerFlow.getAttribute("targetIDs");
+const innerFlows = fh.getSubflows(eSystemFlows);
+for (let i = 0; i < innerFlows.length; i++) {
+  const eInnerFlow = innerFlows[i];
+  const sSources = eInnerFlow.getAttribute("sourceIDs");
+  const sTargets = eInnerFlow.getAttribute("targetIDs");
   resolveSourceToTargetMappings(eEntryFlows, eExitFlows, eSystemFlows, sSources, sTargets);
 }
 
 if (bHasBeenCustomised) {
   // Output the results
-  var sFlowFilename = getFlowFilename(eProj, eJob);
+  const sFlowFilename = getFlowFilename(eProj, eJob);
   outputCustomXML(sFlowFilename);
   copyOriginalToMapped(sFlowFilename);
   igcrest.detectLineageForJob(fh.getAssetRID(eJob), function(err, resLineage) {
@@ -126,39 +128,41 @@ if (bHasBeenCustomised) {
 // - if so, handle it accordingly (add a new conditional column and re-map the flows to this new column)
 function resolveSourceToTargetMappings(entryFlows, exitFlows, systemFlows, sources, targets) {
   
-  var bSourceIsPivot = false;
-  var bTargetIsPivot = false;
+  let bSourceIsPivot = false;
+  let bTargetIsPivot = false;
 
-  var aTargetIDs = targets.split(" ");
-  var aSourceIDs = sources.split(" ");
+  const aTargetIDs = targets.split(" ");
+  const aSourceIDs = sources.split(" ");
 
-  for (var i = 0; i < aSourceIDs.length; i++) {
-    var sSourceId = aSourceIDs[i];
-    var eSourceDS = fh.getAssetById(sSourceId);
-    var sSourceColId = fh.getRepositoryIdFromDSSourceId(entryFlows, sSourceId);
-    if (sSourceColId == null) {
+  for (let i = 0; i < aSourceIDs.length; i++) {
+    const sSourceId = aSourceIDs[i];
+    const eSourceDS = fh.getAssetById(sSourceId);
+    const sSourceColId = fh.getRepositoryIdFromDSSourceId(entryFlows, sSourceId);
+    if (typeof sSourceColId === 'undefined' || sSourceColId === null) {
       console.warn("WARN: column for source not found!  (XML id: " + sSourceId + ")");
     } else {
       
-      var eSource = fh.getAssetById(sSourceColId);
-      var sSourceColName = fh.getAssetName(eSource);
+      const eSource = fh.getAssetById(sSourceColId);
+      const sSourceColName = fh.getAssetName(eSource);
       bSourceIsPivot = (pivotColumns.hasOwnProperty(fh.getAssetRID(eSourceDS)));
       
-      for (var j = 0; j < aTargetIDs.length; j++) {
-        var sTargetId = aTargetIDs[j];
-        var eTargetDS = fh.getAssetById(sTargetId);
-        var sTargetColId = fh.getRepositoryIdFromDSTargetId(exitFlows, sTargetId);
-        if (sTargetColId == null) {
+      for (let j = 0; j < aTargetIDs.length; j++) {
+        const sTargetId = aTargetIDs[j];
+        const eTargetDS = fh.getAssetById(sTargetId);
+        const sTargetColId = fh.getRepositoryIdFromDSTargetId(exitFlows, sTargetId);
+        let sTargetColName = "";
+        let eTarget = null;
+        if (typeof sTargetColId === 'undefined' || sTargetColId === null) {
           console.warn("WARN: column for target not found!  (XML id: " + sTargetId + ")");
         } else {
-          var eTarget = fh.getAssetById(sTargetColId);
-          var sTargetColName = fh.getAssetName(eTarget);
+          eTarget = fh.getAssetById(sTargetColId);
+          sTargetColName = fh.getAssetName(eTarget);
           bTargetIsPivot = (pivotColumns.hasOwnProperty(fh.getAssetRID(eTargetDS)));
         }
 
         if (bSourceIsPivot) {
-          var sPivotColName = getConditionalPivotColumnName(sSourceColName, sTargetColName);
-          var sNewSourceColId = injectSnippetForPivotColumn(sPivotColName, eSource, fh.getAssetById(sSourceId));
+          const sPivotColName = getConditionalPivotColumnName(sSourceColName, sTargetColName);
+          const sNewSourceColId = injectSnippetForPivotColumn(sPivotColName, eSource, fh.getAssetById(sSourceId));
           injectSnippetForPivotFlowAsSource(
                         sNewSourceColId,
                         "ds" + sNewSourceColId,
@@ -171,8 +175,8 @@ function resolveSourceToTargetMappings(entryFlows, exitFlows, systemFlows, sourc
         }
 
         if (bTargetIsPivot) {
-          var sPivotColName = getConditionalPivotColumnName(sTargetColName, sSourceColName);
-          var sNewTargetColId = injectSnippetForPivotColumn(sPivotColName, eTarget, fh.getAssetById(sTargetId));
+          const sPivotColName = getConditionalPivotColumnName(sTargetColName, sSourceColName);
+          const sNewTargetColId = injectSnippetForPivotColumn(sPivotColName, eTarget, fh.getAssetById(sTargetId));
           injectSnippetForPivotFlowAsTarget(
                         "ds" + sNewTargetColId,
                         sNewTargetColId,
@@ -205,14 +209,14 @@ function getPivotVirtualTableName(pivotTable) {
 function injectSnippetForPivotColumn(pivotColName, ePivotCol, ePivotDS) {
 
   // Table first
-  var colParentId = fh.getParentAssetId(ePivotCol);
-  var eParent = fh.getAssetById(colParentId);
+  const colParentId = fh.getParentAssetId(ePivotCol);
+  const eParent = fh.getAssetById(colParentId);
 
-  var pivotTblName = getPivotVirtualTableName(fh.getAssetName(eParent));
-  var tblParentId = fh.getParentAssetId(eParent);
-  var virtTblId = fh.getTableIdentity(pivotTblName, tblParentId);
-  var internalTblId = getIdForObjectIdentity(virtTblId);
-  var bTblExists = (internalTblId != null);
+  const pivotTblName = getPivotVirtualTableName(fh.getAssetName(eParent));
+  const tblParentId = fh.getParentAssetId(eParent);
+  const virtTblId = fh.getTableIdentity(pivotTblName, tblParentId);
+  let internalTblId = getIdForObjectIdentity(virtTblId);
+  const bTblExists = (typeof internalTblId !== 'undefined' && internalTblId !== null);
   if (!bTblExists) {
     internalTblId = mapObjectToNextId(virtTblId);
     fh.addAsset("ASCLModel.DatabaseTable", pivotTblName, virtTblId, internalTblId, "true", "true", "of_DataSchema", tblParentId);
@@ -220,14 +224,14 @@ function injectSnippetForPivotColumn(pivotColName, ePivotCol, ePivotDS) {
   }
 
   // DataStage column IDs
-  var dsParentId = fh.getParentAssetId(ePivotDS);
-  var dsBaseRID = fh.getAssetRID(ePivotDS);
-  var dsColId = "_ngo:" + dsBaseRID.substring(dsBaseRID.indexOf(".") + 1) + "." + ds_rid_gen++;  // Bit of hacking here to get the external ID to be both unique and short enough for xmeta...
+  const dsParentId = fh.getParentAssetId(ePivotDS);
+  const dsBaseRID = fh.getAssetRID(ePivotDS);
+  const dsColId = "_ngo:" + dsBaseRID.substring(dsBaseRID.indexOf(".") + 1) + "." + ds_rid_gen++;  // Bit of hacking here to get the external ID to be both unique and short enough for xmeta...
 
   // Database column IDs
-  var virtColId = fh.getColumnIdentityFromTableIdentity(pivotColName, virtTblId);
-  var internalId = mapObjectToNextId(virtColId);
-  var internalIdDS = "ds" + internalId;
+  const virtColId = fh.getColumnIdentityFromTableIdentity(pivotColName, virtTblId);
+  const internalId = mapObjectToNextId(virtColId);
+  const internalIdDS = "ds" + internalId;
 
   fh.addAsset("ASCLModel.DatabaseField", pivotColName, virtColId, internalId, "true", "true", "of_DatabaseTableOrView", internalTblId);
   fh.addAsset("DataStageX.DSStageColumn", pivotColName, dsColId, internalIdDS, "false", "true", "x_of_JobObject_DSLink", dsParentId);
@@ -240,7 +244,7 @@ function injectSnippetForPivotColumn(pivotColName, ePivotCol, ePivotDS) {
 // Helper functions to generate unique IDs and keep them retrievable later in processing
 function mapObjectToNextId(identity) {
   id_gen++;
-  var internalId = "xt" + id_gen;
+  const internalId = "xt" + id_gen;
   hmObjectIdentitiesToIds[identity] = internalId;
   return internalId;
 }
@@ -252,10 +256,10 @@ function getIdForObjectIdentity(identity) {
 function injectSnippetForPivotFlowAsSource(sEntrySourceId, sEntryTargetId, sSystemSourceId, sSystemTargetId, entryFlows, systemFlows, commentForEntry, commentForSystem) {
 
   // ENTRY flows -- create new flow from conditional database column to conditional datastage column
-  var eExistingMappingEntry = fh.getSubflowBySourceId(entryFlows, sEntrySourceId);
+  const eExistingMappingEntry = fh.getSubflowBySourceId(entryFlows, sEntrySourceId);
   fh.addFlow(entryFlows, eExistingMappingEntry, sEntrySourceId, sEntryTargetId, commentForEntry, false);
   // SYSTEM flows -- append to existing mapping to datastage column to also go from conditional datastage column
-  var eExistingMappingSystem = fh.getSubflowBySourceId(systemFlows, sSystemSourceId);
+  const eExistingMappingSystem = fh.getSubflowBySourceId(systemFlows, sSystemSourceId);
   fh.addFlow(systemFlows, eExistingMappingSystem, sSystemSourceId, sSystemTargetId, commentForSystem, false);
   bHasBeenCustomised = true;
 
@@ -265,10 +269,10 @@ function injectSnippetForPivotFlowAsSource(sEntrySourceId, sEntryTargetId, sSyst
 function injectSnippetForPivotFlowAsTarget(sExitSourceId, sExitTargetId, sSystemSourceId, sSystemTargetId, exitFlows, systemFlows, commentForExit, commentForSystem) {
 
   // EXIT flows -- create a new flow from conditional datastage column to conditional database column
-  var eExistingMappingExit = fh.getSubflowBySourceId(exitFlows, sExitSourceId);
+  const eExistingMappingExit = fh.getSubflowBySourceId(exitFlows, sExitSourceId);
   fh.addFlow(exitFlows, eExistingMappingExit, sExitSourceId, sExitTargetId, commentForExit, false);
   // SYSTEM flows -- append to existing mapping from datastage column to also go to conditional datastage column
-  var eExistingMappingSystem = fh.getSubflowBySourceId(systemFlows, sSystemSourceId);
+  const eExistingMappingSystem = fh.getSubflowBySourceId(systemFlows, sSystemSourceId);
   fh.addFlow(systemFlows, eExistingMappingSystem, sSystemSourceId, sSystemTargetId, commentForSystem, false);
   bHasBeenCustomised = true;
 
@@ -280,12 +284,12 @@ function getFlowFilename(eProj, eJob) {
 }
 function outputCustomXML(sFilename) {
 
-  var xmlOut = fh.getCustomisedXML();
-  var options = {
+  const xmlOut = fh.getCustomisedXML();
+  const options = {
     "encoding": 'utf8',
     "mode": 0o644,
     "flag": 'w'
-  }
+  };
   fs.writeFileSync("/data/semanticLineage/mappedFlows/output/" + sFilename, pd.xml(xmlOut), options);
 
 }
