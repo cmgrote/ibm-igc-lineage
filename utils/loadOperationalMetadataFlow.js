@@ -31,7 +31,7 @@
 
 const fs = require('fs-extra');
 const pd = require('pretty-data').pd;
-require('shelljs/global');
+const shell = require('shelljs');
 const igclineage = require('ibm-igc-lineage');
 
 // Command-line setup
@@ -100,21 +100,21 @@ const outOpts = {
 };
 fs.writeFileSync(outputFile, output, outOpts);
 
-if (test('-f', "/.dshome")) {
+if (shell.test('-f', "/.dshome")) {
 
-  const dshome = cat("/.dshome");
+  const dshome = shell.cat("/.dshome");
   const cmd = dshome.replace("\n", "") +
           "/../../Clients/istools/cli/istool.sh workbench importOMD" +
           " -dom " + argv.domain +
           " -u " + argv.deploymentUser +
           " -p " + argv.deploymentUserPassword +
           " -f \"" + outputFile + "\"";
-  const result = exec(cmd, {"shell": "/bin/bash"});
+  const result = shell.exec(cmd, {"shell": "/bin/bash"});
 
   //console.log(result);
-  exit(result.code);
+  shell.exit(result.code);
 
 } else {
   console.error("Unable to find /.dshome -- this does not appear to be an engine tier.");
-  exit(1);
+  shell.exit(1);
 }
