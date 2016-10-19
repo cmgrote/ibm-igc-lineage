@@ -17,7 +17,7 @@
 "use strict";
 
 /**
- * @file FlowHandler class -- for handling IGC Flow Documents (XML)
+ * @file OMDHandler class -- for handling IGC Flow Documents (XML)
  * @license Apache-2.0
  * @requires xmldom
  * @requires xpath
@@ -209,7 +209,7 @@ class OMDHandler {
   }
 
   /**
-   * Gets the full identity string (/-delimited) of the data resource
+   * Gets the full identity string (::-delimited) of the data resource
    *
    * @function
    * @param {DataResourceLocator} dataResource
@@ -220,7 +220,7 @@ class OMDHandler {
     const store = this.getDataResourceStore(dataResource);
     const schema = this.getDataResourceSchema(dataResource);
     const table = this.getDataResourceTable(dataResource);
-    return host + "/" + store + "/" + schema + "/" + table;
+    return host + "::" + store + "::" + schema + "::" + table;
   }
 
   /**
@@ -266,6 +266,7 @@ class OMDHandler {
       const sFormalParameter = this._getAttributeByContext("@Name", this._getElementByContext("SoftwareResourceLocator/LocatorComponent[@Class='FormalParameter']", eParam));
       // If the parameter is for SourceConnectionString or TargetConnectionString, we'll pre-pend the parameter with the old hostname to create
       // a unique connection string (which we can then use in connection mapping for lineage purposes)
+      // NOTE: This seems to be a user-defined parameter name...  Will need to ensure everyone uses exactly the same name for this?
       if (sFormalParameter === "SourceConnectionString" || sFormalParameter === "TargetConnectionString") {
         const originalHost = this._getAttributeByContext("@Name", eParamHost);
         const sValue = this._getAttributeByContext("@Value", eParam);
@@ -281,6 +282,53 @@ class OMDHandler {
     const eWriteEvent = this.getWriteEvent();
     const eWriteEventHost = this._getHostElement(this._getElementByContext("DataResourceLocator", eWriteEvent));
     eWriteEventHost.setAttribute("Name", targetHostname);
+
+  }
+
+  /**
+   * Returns a unique identity object for the runtime information received; specifically a set of unique parameters
+   * as could be used to uniquely identify an object in IGC's lineage
+   *
+   * @function
+   * @returns Object
+   */
+  getUniqueRuntimeIdentity() {
+
+    const idObj = {};
+
+    // Pull project and job names from the Design information (otherwise we'll get a runtime name for the job, with a timestamp embedded in it)
+    idObj.project = this._getAttributeByContext("@Name", this.getElement("/Run/Design/SoftwareResourceLocator/LocatorComponent[@SubClass='Project']"));
+    idObj.job = this._getAttributeByContext("@Name", this.getElement("/Run/Design/SoftwareResourceLocator/LocatorComponent[@SubClass='Job']"));
+
+    // Pull parameters from the runtime
+    // TODO: should limit these to only lineage-relevant ones (eg ReadMode, RowsLimit will have no impact); but how to tell?
+    // (Are any of them actually critical to lineage?)
+    idObj.parameters = {};
+    const elParameters = this.getElements("/Run/ActualParameters/ActualParameter");
+    for (let i = 0; i < elParameters.length; i++) {
+      const eParam = elParameters[i];
+      const paramValue = this._getAttributeByContext("@Value", eParam);
+      const paramName = this._getAttributeByContext("@Name", this._getElementByContext("SoftwareResourceLocator/LocatorComponent[@Class='FormalParameter']", eParam));
+      idObj.parameters[paramName] = paramValue;
+    }
+
+    const eReadEvent = this.getReadEvent();
+    const sourceIdentity = this.getDataResourceIdentity(this._getElementByContext("DataResourceLocator", eReadEvent));
+    // Next line is to address the empty database name that seems to come back (NOTE: reliant on SourceConnectionString naming convention)
+    idObj.source = sourceIdentity.replace(":: ::", "::" + idObj.parameters.SourceConnectionString + "::");
+    const sourceId = this._getAttributeByContext("@ReferenceDC", this._getElementByContext("SoftwareResourceLocator", eReadEvent));
+    const eSourceDC = this.getElement("/Run/DataSchema/DataCollection[@Ident='" + sourceId + "']");
+    idObj.sourceColumns = this.getDataCollectionColumns(eSourceDC);
+
+    const eWriteEvent = this.getWriteEvent();
+    // Next line is to address the empty database name that seems to come back (NOTE: reliant on TargetConnectionString naming convention)
+    const targetIdentity = this.getDataResourceIdentity(this._getElementByContext("DataResourceLocator", eWriteEvent));
+    idObj.target = targetIdentity.replace(":: ::", "::" + idObj.parameters.TargetConnectionString + "::");
+    const targetId = this._getAttributeByContext("@ReferenceDC", this._getElementByContext("SoftwareResourceLocator", eWriteEvent));
+    const eTargetDC = this.getElement("/Run/DataSchema/DataCollection[@Ident='" + targetId + "']");
+    idObj.targetColumns = this.getDataCollectionColumns(eTargetDC);
+
+    return idObj;
 
   }
 
