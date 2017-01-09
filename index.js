@@ -24,16 +24,6 @@ const OMDHandler = require('./classes/omd-handler');
  * @license Apache-2.0
  * @requires xmldom
  * @requires xpath
- * @example
- * // parses an XML flow document held in 'xmlString' as a string
- * var igclineage = require('ibm-igc-lineage');
- * var fh = new igclineage.FlowHandler();
- * fh.parseXML(xmlString);
-  * @example
- * // parses an operational metadata XML document held in 'xmlString' as a string
- * var igclineage = require('ibm-igc-lineage');
- * var omd = new igclineage.OMDHandler();
- * omd.parseOMD(xmlString);
  */
 
 /**

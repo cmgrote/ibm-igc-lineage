@@ -8,6 +8,15 @@
 
 FlowHandler class -- for handling IGC Flow Documents (XML)
 
+**Examples**
+
+```javascript
+// parses an XML flow document held in 'xmlString' as a string
+var igclineage = require('ibm-igc-lineage');
+var fh = new igclineage.FlowHandler();
+fh.parseXML(xmlString);
+```
+
 **Meta**
 
 -   **license**: Apache-2.0
@@ -224,6 +233,15 @@ Returns **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Refer
 ## OMDHandler
 
 OMDHandler class -- for handling IGC run-time, operational metadata documents (OMD XML)
+
+**Examples**
+
+```javascript
+// parses an operational metadata XML document held in 'xmlString' as a string
+var igclineage = require('ibm-igc-lineage');
+var omd = new igclineage.OMDHandler();
+omd.parseOMD(xmlString);
+```
 
 **Meta**
 

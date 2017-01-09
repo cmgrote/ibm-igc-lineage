@@ -22,6 +22,11 @@ const xpath = require('xpath');
 /**
  * OMDHandler class -- for handling IGC run-time, operational metadata documents (OMD XML)
  * @license Apache-2.0
+ * @example
+ * // parses an operational metadata XML document held in 'xmlString' as a string
+ * var igclineage = require('ibm-igc-lineage');
+ * var omd = new igclineage.OMDHandler();
+ * omd.parseOMD(xmlString);
  */
 class OMDHandler {
 
