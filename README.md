@@ -4,348 +4,6 @@
 
 ## ibm-igc-lineage
 
-## OMDHandler
-
-Re-usable functions for handling lineage flow documents (XML) and operational metadata (OMD XML)
-
-**Examples**
-
-```javascript
-// parses an XML flow document held in 'xmlString' as a string
-var igclineage = require('ibm-igc-lineage');
-var fh = new igclineage.FlowHandler();
-fh.parseXML(xmlString);
-```
-
-```javascript
-// parses an operational metadata XML document held in 'xmlString' as a string
-var igclineage = require('ibm-igc-lineage');
-var omd = new igclineage.OMDHandler();
-omd.parseOMD(xmlString);
-```
-
-**Meta**
-
--   **license**: Apache-2.0
-
-### parseOMD
-
-Parses an Operational Metadata (OMD) flow document
-
-**Parameters**
-
--   `flow` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
-
-### getRunMessage
-
-Gets the information message resulting from the execution of the job that produced this operational metadata
-
-Returns **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
-
-### getRunStatus
-
-Gets the status code from the execution of the job that produced this operational metadata
-
-Returns **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
-
-### getDesign
-
-Gets the details for the operational metadata job's design
-
-Returns **SoftwareResourceLocator** 
-
-### getExecutable
-
-Gets the details for the operational metadata job's executable
-
-Returns **SoftwareResourceLocator** 
-
-### getReadEvent
-
-Gets the details for OMD Read Event (data movement)
-
-Returns **[Event](https://developer.mozilla.org/en-US/docs/Web/API/Event)** 
-
-### getWriteEvent
-
-Gets the details for OMD Write Event (data movement)
-
-Returns **[Event](https://developer.mozilla.org/en-US/docs/Web/API/Event)** 
-
-### getRowCount
-
-Gets the number of records processed by the event
-
-**Parameters**
-
--   `e` **[Event](https://developer.mozilla.org/en-US/docs/Web/API/Event)** 
-
-Returns **int** 
-
-### getDataResourceForEvent
-
-Gets the data resource (table-level details) processed by the event
-
-**Parameters**
-
--   `e` **[Event](https://developer.mozilla.org/en-US/docs/Web/API/Event)** 
-
-Returns **DataResourceLocator** 
-
-### getDataCollectionForEvent
-
-Gets the data collection (column-level details) processed by the event
-
-**Parameters**
-
--   `e` **[Event](https://developer.mozilla.org/en-US/docs/Web/API/Event)** 
-
-Returns **DataCollection** 
-
-### getDataResourceHost
-
-Gets the hostname of the data resource
-
-**Parameters**
-
--   `dataResource` **DataResourceLocator** 
-
-Returns **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
-
-### getDataResourceStore
-
-Gets the data store name of the data resource
-
-**Parameters**
-
--   `dataResource` **DataResourceLocator** 
-
-Returns **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
-
-### getDataResourceSchema
-
-Gets the schema of the data resource
-
-**Parameters**
-
--   `dataResource` **DataResourceLocator** 
-
-Returns **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
-
-### getDataResourceTable
-
-Gets the table name of the data resource
-
-**Parameters**
-
--   `dataResource` **DataResourceLocator** 
-
-Returns **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
-
-### getDataResourceIdentity
-
-Gets the full identity string (::-delimited) of the data resource
-
-**Parameters**
-
--   `dataResource` **DataResourceLocator** 
-
-Returns **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
-
-### getDataCollectionColumns
-
-Gets an array of all column names within the data collection
-
-**Parameters**
-
--   `dataCollection` **DataCollection** 
-
-Returns **[Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)>** 
-
-### replaceHostname
-
-Replaces the hostname in the operational metadata everywhere, making it loadable in a target environment
-
-**Parameters**
-
--   `targetHostname` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** the engine tier hostname of the target environment (where the operational metadata is to be loaded)
-
-### getUniqueRuntimeIdentity
-
-Returns a unique identity object for the runtime information received; specifically a set of unique parameters
-as could be used to uniquely identify an object in IGC's lineage
-
-Returns **any** Object
-
-### getCustomisedOMD
-
-Retrieves the operational metadata XML, including any modifications that have been made (i.e. replaced hostnames)
-
-Returns **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** the full XML of the operational metadata
-
-## OMDHandler
-
-OMDHandler class -- for handling IGC run-time, operational metadata documents (OMD XML)
-
-**Meta**
-
--   **license**: Apache-2.0
-
-### parseOMD
-
-Parses an Operational Metadata (OMD) flow document
-
-**Parameters**
-
--   `flow` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
-
-### getRunMessage
-
-Gets the information message resulting from the execution of the job that produced this operational metadata
-
-Returns **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
-
-### getRunStatus
-
-Gets the status code from the execution of the job that produced this operational metadata
-
-Returns **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
-
-### getDesign
-
-Gets the details for the operational metadata job's design
-
-Returns **SoftwareResourceLocator** 
-
-### getExecutable
-
-Gets the details for the operational metadata job's executable
-
-Returns **SoftwareResourceLocator** 
-
-### getReadEvent
-
-Gets the details for OMD Read Event (data movement)
-
-Returns **[Event](https://developer.mozilla.org/en-US/docs/Web/API/Event)** 
-
-### getWriteEvent
-
-Gets the details for OMD Write Event (data movement)
-
-Returns **[Event](https://developer.mozilla.org/en-US/docs/Web/API/Event)** 
-
-### getRowCount
-
-Gets the number of records processed by the event
-
-**Parameters**
-
--   `e` **[Event](https://developer.mozilla.org/en-US/docs/Web/API/Event)** 
-
-Returns **int** 
-
-### getDataResourceForEvent
-
-Gets the data resource (table-level details) processed by the event
-
-**Parameters**
-
--   `e` **[Event](https://developer.mozilla.org/en-US/docs/Web/API/Event)** 
-
-Returns **DataResourceLocator** 
-
-### getDataCollectionForEvent
-
-Gets the data collection (column-level details) processed by the event
-
-**Parameters**
-
--   `e` **[Event](https://developer.mozilla.org/en-US/docs/Web/API/Event)** 
-
-Returns **DataCollection** 
-
-### getDataResourceHost
-
-Gets the hostname of the data resource
-
-**Parameters**
-
--   `dataResource` **DataResourceLocator** 
-
-Returns **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
-
-### getDataResourceStore
-
-Gets the data store name of the data resource
-
-**Parameters**
-
--   `dataResource` **DataResourceLocator** 
-
-Returns **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
-
-### getDataResourceSchema
-
-Gets the schema of the data resource
-
-**Parameters**
-
--   `dataResource` **DataResourceLocator** 
-
-Returns **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
-
-### getDataResourceTable
-
-Gets the table name of the data resource
-
-**Parameters**
-
--   `dataResource` **DataResourceLocator** 
-
-Returns **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
-
-### getDataResourceIdentity
-
-Gets the full identity string (::-delimited) of the data resource
-
-**Parameters**
-
--   `dataResource` **DataResourceLocator** 
-
-Returns **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
-
-### getDataCollectionColumns
-
-Gets an array of all column names within the data collection
-
-**Parameters**
-
--   `dataCollection` **DataCollection** 
-
-Returns **[Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)>** 
-
-### replaceHostname
-
-Replaces the hostname in the operational metadata everywhere, making it loadable in a target environment
-
-**Parameters**
-
--   `targetHostname` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** the engine tier hostname of the target environment (where the operational metadata is to be loaded)
-
-### getUniqueRuntimeIdentity
-
-Returns a unique identity object for the runtime information received; specifically a set of unique parameters
-as could be used to uniquely identify an object in IGC's lineage
-
-Returns **any** Object
-
-### getCustomisedOMD
-
-Retrieves the operational metadata XML, including any modifications that have been made (i.e. replaced hostnames)
-
-Returns **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** the full XML of the operational metadata
-
 ## FlowHandler
 
 FlowHandler class -- for handling IGC Flow Documents (XML)
@@ -562,3 +220,166 @@ Adds a flow to the flow XML
 Retrieves the flow XML, including any modifications that have been made (added assets, flows)
 
 Returns **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** the full XML of the flow document
+
+## OMDHandler
+
+OMDHandler class -- for handling IGC run-time, operational metadata documents (OMD XML)
+
+**Meta**
+
+-   **license**: Apache-2.0
+
+### parseOMD
+
+Parses an Operational Metadata (OMD) flow document
+
+**Parameters**
+
+-   `flow` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+
+### getRunMessage
+
+Gets the information message resulting from the execution of the job that produced this operational metadata
+
+Returns **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+
+### getRunStatus
+
+Gets the status code from the execution of the job that produced this operational metadata
+
+Returns **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+
+### getDesign
+
+Gets the details for the operational metadata job's design
+
+Returns **SoftwareResourceLocator** 
+
+### getExecutable
+
+Gets the details for the operational metadata job's executable
+
+Returns **SoftwareResourceLocator** 
+
+### getReadEvent
+
+Gets the details for OMD Read Event (data movement)
+
+Returns **[Event](https://developer.mozilla.org/en-US/docs/Web/API/Event)** 
+
+### getWriteEvent
+
+Gets the details for OMD Write Event (data movement)
+
+Returns **[Event](https://developer.mozilla.org/en-US/docs/Web/API/Event)** 
+
+### getRowCount
+
+Gets the number of records processed by the event
+
+**Parameters**
+
+-   `e` **[Event](https://developer.mozilla.org/en-US/docs/Web/API/Event)** 
+
+Returns **int** 
+
+### getDataResourceForEvent
+
+Gets the data resource (table-level details) processed by the event
+
+**Parameters**
+
+-   `e` **[Event](https://developer.mozilla.org/en-US/docs/Web/API/Event)** 
+
+Returns **DataResourceLocator** 
+
+### getDataCollectionForEvent
+
+Gets the data collection (column-level details) processed by the event
+
+**Parameters**
+
+-   `e` **[Event](https://developer.mozilla.org/en-US/docs/Web/API/Event)** 
+
+Returns **DataCollection** 
+
+### getDataResourceHost
+
+Gets the hostname of the data resource
+
+**Parameters**
+
+-   `dataResource` **DataResourceLocator** 
+
+Returns **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+
+### getDataResourceStore
+
+Gets the data store name of the data resource
+
+**Parameters**
+
+-   `dataResource` **DataResourceLocator** 
+
+Returns **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+
+### getDataResourceSchema
+
+Gets the schema of the data resource
+
+**Parameters**
+
+-   `dataResource` **DataResourceLocator** 
+
+Returns **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+
+### getDataResourceTable
+
+Gets the table name of the data resource
+
+**Parameters**
+
+-   `dataResource` **DataResourceLocator** 
+
+Returns **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+
+### getDataResourceIdentity
+
+Gets the full identity string (::-delimited) of the data resource
+
+**Parameters**
+
+-   `dataResource` **DataResourceLocator** 
+
+Returns **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+
+### getDataCollectionColumns
+
+Gets an array of all column names within the data collection
+
+**Parameters**
+
+-   `dataCollection` **DataCollection** 
+
+Returns **[Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)>** 
+
+### replaceHostname
+
+Replaces the hostname in the operational metadata everywhere, making it loadable in a target environment
+
+**Parameters**
+
+-   `targetHostname` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** the engine tier hostname of the target environment (where the operational metadata is to be loaded)
+
+### getUniqueRuntimeIdentity
+
+Returns a unique identity object for the runtime information received; specifically a set of unique parameters
+as could be used to uniquely identify an object in IGC's lineage
+
+Returns **any** Object
+
+### getCustomisedOMD
+
+Retrieves the operational metadata XML, including any modifications that have been made (i.e. replaced hostnames)
+
+Returns **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** the full XML of the operational metadata

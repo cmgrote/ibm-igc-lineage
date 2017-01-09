@@ -39,6 +39,8 @@ const OMDHandler = require('./classes/omd-handler');
 /**
  * @module ibm-igc-lineage
  */
+const _unused = "For documentation generation purposes...";
+
 if (typeof require === 'function') {
   exports.FlowHandler = FlowHandler;
   exports.OMDHandler = OMDHandler;
