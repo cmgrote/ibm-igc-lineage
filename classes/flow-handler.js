@@ -16,18 +16,12 @@
 
 "use strict";
 
-/**
- * @file FlowHandler class -- for handling IGC Flow Documents (XML)
- * @license Apache-2.0
- * @requires xmldom
- * @requires xpath
- */
-
 const xmldom = require('xmldom');
 const xpath = require('xpath');
 
 /**
- * @namespace
+ * FlowHandler class -- for handling IGC Flow Documents (XML)
+ * @license Apache-2.0
  */
 class FlowHandler {
 

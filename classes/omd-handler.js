@@ -16,18 +16,12 @@
 
 "use strict";
 
-/**
- * @file OMDHandler class -- for handling IGC Flow Documents (XML)
- * @license Apache-2.0
- * @requires xmldom
- * @requires xpath
- */
-
 const xmldom = require('xmldom');
 const xpath = require('xpath');
 
 /**
- * @namespace
+ * OMDHandler class -- for handling IGC run-time, operational metadata documents (OMD XML)
+ * @license Apache-2.0
  */
 class OMDHandler {
 
