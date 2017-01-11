@@ -16,20 +16,16 @@
 
 "use strict";
 
-const FlowHandler = require('./classes/flow-handler');
-const OMDHandler = require('./classes/omd-handler');
-
 /**
- * @file Re-usable functions for handling lineage flow documents (XML) and operational metadata (OMD XML)
+ * Re-usable functions for handling lineage flow documents (XML) and operational metadata (OMD XML)
+ * @module ibm-igc-lineage
  * @license Apache-2.0
  * @requires xmldom
  * @requires xpath
  */
 
-/**
- * @module ibm-igc-lineage
- */
-const _unused = "For documentation generation purposes...";
+const FlowHandler = require('./classes/flow-handler');
+const OMDHandler = require('./classes/omd-handler');
 
 if (typeof require === 'function') {
   exports.FlowHandler = FlowHandler;

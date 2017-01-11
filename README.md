@@ -4,6 +4,12 @@
 
 ## ibm-igc-lineage
 
+Re-usable functions for handling lineage flow documents (XML) and operational metadata (OMD XML)
+
+**Meta**
+
+-   **license**: Apache-2.0
+
 ## FlowHandler
 
 FlowHandler class -- for handling IGC Flow Documents (XML)
