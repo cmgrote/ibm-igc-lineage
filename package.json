@@ -1,7 +1,7 @@
 {
   "name": "ibm-igc-lineage",
   "version": "0.2.1",
-  "description": "Library to use IBM Information Governance Catalog lineage",
+  "description": "Re-usable functions for handling lineage flow documents (XML) and operational metadata (OMD XML)",
   "main": "./index.js",
   "files": [
     "index.js",

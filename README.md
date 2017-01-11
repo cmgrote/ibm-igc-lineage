@@ -23,10 +23,6 @@ var fh = new igclineage.FlowHandler();
 fh.parseXML(xmlString);
 ```
 
-**Meta**
-
--   **license**: Apache-2.0
-
 ### parseXML
 
 Parses an XML flow document
@@ -248,10 +244,6 @@ var igclineage = require('ibm-igc-lineage');
 var omd = new igclineage.OMDHandler();
 omd.parseOMD(xmlString);
 ```
-
-**Meta**
-
--   **license**: Apache-2.0
 
 ### parseOMD
 

@@ -21,7 +21,6 @@ const xpath = require('xpath');
 
 /**
  * FlowHandler class -- for handling IGC Flow Documents (XML)
- * @license Apache-2.0
  * @example
  * // parses an XML flow document held in 'xmlString' as a string
  * var igclineage = require('ibm-igc-lineage');
