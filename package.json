@@ -6,16 +6,28 @@
   "files": [
     "index.js",
     "classes",
+    "samples",
+    "src",
+    "bin",
     "LICENSE"
   ],
   "dependencies": {
     "xmldom": ">=0.1.22",
-    "xpath": ">=0.0.23"
+    "xpath": ">=0.0.23",
+    "pretty-data": ">=0.40.0",
+    "fs-extra": ">=0.30.0",
+    "shelljs": ">=0.7.4",
+    "yargs": ">=6.6.0",
+    "ibm-iis-commons": ">=0.3.0"
   },
   "devDependencies": {
     "jsdoc": "^3.4.0",
     "jshint": "^2.9.1",
     "mocha": "^2.4.5"
+  },
+   "bin": {
+    "getLineageCustomisationRIDs": "bin/getLineageCustomisationRIDs.js",
+    "loadOperationalMetadataFlow": "bin/loadOperationalMetadataFlow.js"
   },
   "engines": {
     "node": ">=4.2.4"
