@@ -8,6 +8,19 @@ These classes provide a generic lineage flow extension hook-point, which works a
 
 NOTE: This does *not* actually contain any logic for customising the lineage -- it provides only the very simple lookup logic described immediately above.  Actually customising or extending lineage can then be done asynchronously by any means desired, and the result of such customisation placed into the appropriate directory location to be automatically picked up by (2) above.
 
+# Usage
+
+By default (these locations can be modified in the `LineageCustomisationProvider.properties` file before bundling and deploying the jar file):
+
+1.	For any job for which lineage is enabled, any time it is modified (e.g. imported, saved within DataStage, etc) this extension point will be called with the IGC-generated lineage for that job.
+2.	The extension point will record this default IGC-produced lineage into `/data/semanticLineage/originalFlows/<projectName>__<jobName>.xml`.
+3.	The extension point will then look for an XML file with the same name under `/data/semanticLineage/mappedFlows/output/`.
+
+	-	If such an XML file is found, it will then look for the same XML file under `/data/semanticLineage/mappedFlows/source/`.  If this XML file matches the default IGC-produced lineage we know the job has not changed (with respect to lineage) and can continue to use the custom lineage in `/data/semanticLineage/mappedFlows/output/`.  If the XML file does *not* match the IGC-produced lineage, we must assume the job has changed since the custom lineage was created -- to be safe we therefore retain the IGC-produced lineage.
+	-	If not found, the default IGC-produced lineage will be retained.
+
+4. In all cases, an informational status message and code are left on the job indicating the outcome.
+
 # Installation
 
 ## Pre-requisites
