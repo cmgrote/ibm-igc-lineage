@@ -17,7 +17,8 @@
     "fs-extra": ">=0.30.0",
     "shelljs": ">=0.7.4",
     "yargs": ">=6.6.0",
-    "ibm-iis-commons": ">=0.3.0"
+    "ibm-iis-commons": ">=0.3.0",
+    "ibm-igc-rest": ">=0.3.0"
   },
   "devDependencies": {
     "jsdoc": "^3.4.0",
