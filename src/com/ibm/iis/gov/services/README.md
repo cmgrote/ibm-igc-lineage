@@ -33,6 +33,7 @@ The lineage customisation mechanism is only available from Information Server v1
 ## Register the lineage flow extension hook-point
 
 The following steps configure this basic hook-point:
+
 1.	Copy the file `custom-flows.jar` to `/opt/IBM/WebSphere/AppServer/profiles/InfoSphere/lib/iis/110gov`.
 2.	Ensure the jar file is readable by the user that runs WebSphere Application Server (in a default installation this would be root, but in a hardened environment may be another user).
 3.	Run the following command on the domain (services) tier of Information Server:
@@ -41,6 +42,6 @@ The following steps configure this basic hook-point:
 	# cd /opt/IBM/InformationServer/ASBServer/bin
 	# ./iisAdmin.sh -set -key com.ibm.iis.gov.vr.setting.flowTweaker -value com.ibm.iis.gov.services.LineageCustomisationProvider
 	```
-	
+
 4.	Create the following folders on the domain (services) tier of Information Server, again ensuring that they are owned and writable by the user that runs WebSphere Application Server: `/data/semanticLineage/originalFlows`, `/data/semanticLineage/mappedFlows/source`,  `/data/semanticLineage/mappedFlows/output`
 5.	Restart WebSphere Application Server, or alternatively the entire Information Server stack.
