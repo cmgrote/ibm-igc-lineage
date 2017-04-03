@@ -84,13 +84,7 @@ const customLineageColsQ = {
 
 const lineageCols = {};
 
-const envCtx = new commons.EnvironmentContext();
-if (argv.authfile !== undefined && argv.authfile !== "") {
-  envCtx.authFile = argv.authfile;
-} else {
-  console.error("No authorisation file found -- cannot proceed.");
-  process.exit(1);
-}
+const envCtx = new commons.EnvironmentContext(null, argv.authfile);
 
 prompt.override = argv;
 

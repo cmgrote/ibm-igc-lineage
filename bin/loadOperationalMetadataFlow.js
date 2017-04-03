@@ -74,13 +74,7 @@ const inputFile = argv.file;
 const outputFile = argv.output;
 let targetEngine = argv.engine;
 
-const envCtx = new commons.EnvironmentContext();
-if (argv.authfile !== undefined && argv.authfile !== "") {
-  envCtx.authFile = argv.authfile;
-} else {
-  console.error("No authorisation file found -- cannot proceed.");
-  process.exit(1);
-}
+const envCtx = new commons.EnvironmentContext(null, argv.authfile);
 
 if (typeof targetEngine === 'undefined' || targetEngine === null || targetEngine === "") {
   targetEngine = envCtx.engine;
