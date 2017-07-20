@@ -30,8 +30,8 @@ const xpath = require('xpath');
 class FlowHandler {
 
   constructor() {
-    this._doc = null;
-    this._xmlOriginal = "";
+    this._xmlOriginal = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<doc xmlns=\"http://www.ibm.com/iis/flow-doc\">\n  <assets>\n  </assets>\n  <flowUnits>\n  </flowUnits>\n</doc>";
+    this._doc = new xmldom.DOMParser().parseFromString(this._xmlOriginal);
     this._eProject = null;
     this._eJob = null;
     this._select = xpath.useNamespaces({"flowdoc": "http://www.ibm.com/iis/flow-doc"});
@@ -138,6 +138,48 @@ class FlowHandler {
   }
 
   /**
+   * Creates a new flowUnit
+   *
+   * @param {string} flowType - DESIGN or SYSTEM
+   * @param {string} xmlIdOfProcessor - the internal XML flow doc ID of the processing routine (ETL job, etc)
+   * @param {string} [comment] - an optional comment to include on the flow
+   */
+  createFlowUnit(flowType, xmlIdOfProcessor, comment) {
+    
+    const eFlows = this.getElement("/flowdoc:doc/flowdoc:flowUnits");
+    
+    // New flow unit
+    const eNewFlow = this._doc.createElement("flowUnit");
+    eNewFlow.setAttribute("assetID", xmlIdOfProcessor);
+    eFlows.appendChild(eNewFlow);
+    
+    // New subflow within the unit (this ~= job / routine doing data processing)
+    const eSubFlow = this._doc.createElement("subFlows");
+    eSubFlow.setAttribute("flowType", flowType);
+    if (comment !== null) {
+      eSubFlow.setAttribute("comment", comment);
+    }
+    eNewFlow.appendChild(eSubFlow);
+
+/*    
+    // New in-bound flow (from source => job / routine)
+    const flowIn = this._doc.createElement("flow");
+    flowIn.setAttribute("sourceIDs", sourceIds.join(" "));
+    flowIn.setAttribute("targetIDs", xmlIdOfProcessor);
+    eSubFlow.appendChild(flowIn);
+
+    // New out-bound flow (from job / routine => output)
+    const flowOut = this._doc.createElement("flow");
+    flowOut.setAttribute("sourceIDs", xmlIdOfProcessor);
+    flowOut.setAttribute("targetIDs", outputIds.join(" "));
+    eSubFlow.appended(flowOut);
+*/
+
+    return eNewFlow;
+
+  }
+
+  /**
    * Gets the details for ENTRY flows (data store-to-DataStage)
    *
    * @function
@@ -165,6 +207,16 @@ class FlowHandler {
    */
   getSystemFlows() {
     return this.getElement("/flowdoc:doc/flowdoc:flowUnits/flowdoc:flowUnit/flowdoc:subFlows[@flowType='SYSTEM']");
+  }
+
+  /**
+   * Gets the details of DESIGN flows
+   *
+   * @function
+   * @returns {FlowList}
+   */
+  getDesignFlows() {
+    return this.getElement("/flowdoc:doc/flowdoc:flowUnits/flowdoc:flowUnit/flowdoc:subFlows[@flowType='DESIGN']");
   }
 
   /**
@@ -320,8 +372,8 @@ class FlowHandler {
    * @param {string} xmlId - the unique ID of the asset within the XML flow document
    * @param {string} matchByName - should be one of ['true', 'false']
    * @param {string} virtualOnly - should be one of ['true', 'false']
-   * @param {string} parentType - the classname of the asset's parent data type (e.g. ASCLModel.DatabaseTable)
-   * @param {string} parentId - the unique ID of the asset's parent within the XML flow document
+   * @param {string} [parentType] - the classname of the asset's parent data type (e.g. ASCLModel.DatabaseTable)
+   * @param {string} [parentId] - the unique ID of the asset's parent within the XML flow document
    */
   addAsset(className, name, rid, xmlId, matchByName, virtualOnly, parentType, parentId) {
     const eAsset = this._doc.createElement("asset");
@@ -335,10 +387,12 @@ class FlowHandler {
     eAttr.setAttribute("name", "name");
     eAttr.setAttribute("value", name);
     eAsset.appendChild(eAttr);
-    const eRef = this._doc.createElement("reference");
-    eRef.setAttribute("name", parentType);
-    eRef.setAttribute("assetIDs", parentId);
-    eAsset.appendChild(eRef);
+    if (parentType !== null && parentId !== null) {
+      const eRef = this._doc.createElement("reference");
+      eRef.setAttribute("name", parentType);
+      eRef.setAttribute("assetIDs", parentId);
+      eAsset.appendChild(eRef);
+    }
     this._doc.getElementsByTagName("assets").item(0).appendChild(eAsset);
   }
 
@@ -350,7 +404,7 @@ class FlowHandler {
    * @see module:ibm-igc-lineage~FlowHandler#getExitFlows
    * @see module:ibm-igc-lineage~FlowHandler#getSystemFlows
    * @param {FlowList} flowsSection - the flows area into which to add the flow
-   * @param {Flow} existingFlow - an existing flow to update or replace
+   * @param {Flow} [existingFlow] - an existing flow to update or replace
    * @param {string} sourceIDs - the sourceIDs to use in the flow mapping
    * @param {string} targetIDs - the targetIDs to use in the flow mapping
    * @param {string} comment - the comment to add to the flow mapping
