@@ -13,12 +13,13 @@
   "dependencies": {
     "xmldom": ">=0.1.22",
     "xpath": ">=0.0.23",
+    "exceljs": ">=0.2.24",
     "pretty-data": ">=0.40.0",
     "fs-extra": ">=0.30.0",
     "shelljs": ">=0.7.4",
     "yargs": ">=6.6.0",
     "ibm-iis-commons": ">=0.3.0",
-    "ibm-igc-rest": ">=0.3.0"
+    "ibm-igc-rest": ">=0.7.2"
   },
   "devDependencies": {
     "jsdoc": "^3.4.0",
