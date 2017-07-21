@@ -18,6 +18,59 @@ Re-usable functions for handling lineage flow documents (XML) and operational me
 
 -   **license**: Apache-2.0
 
+## populateTemplateWithExistingAssets
+
+Adds entries to the specified workbook for any existing assets of that type in an IGC environment
+
+**Parameters**
+
+-   `igcrest` **ibm-igc-rest** the instantiation of an ibm-igc-rest object, with connection already configured
+-   `workbook` **Workbook** the workbook into which to add existing assets
+-   `callback` **[workbookCallback](#workbookcallback)** callback that returns the modified workbook
+
+## getTemplateForAssets
+
+Returns a template (list of headers & pre-defined assets) for the asset specified
+
+**Parameters**
+
+-   `assetName` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+-   `wb` **Workbook?** an optional workbook into which to add this template
+
+Returns **any** Workbook an Excel Workbook with the template
+
+## getTemplateForLineage
+
+Returns a template (list of headers) for defining lineage flows
+
+**Parameters**
+
+-   `wb` **Workbook?** an optional workbook into which to add this template
+
+Returns **any** Workbook an Excel Workbook with the template
+
+## loadManuallyDefinedFlows
+
+Loads lineage information as specified in the provided Excel file -- which should have been produced first by the getTemplateForLineage function
+
+**Parameters**
+
+-   `igcrest` **ibm-igc-rest** the instantiation of an ibm-igc-rest object, with connection already configured
+-   `inputFile` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** name of the .xlsx file containing lineage and any new asset information
+-   `outputFile` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** optional name of an output file, which if provided will avoid automatically sending lineage to the server
+-   `callback` **processCallback** callback that handles the response of processing
+
+## workbookCallback
+
+This callback is invoked as the result of modifying an Excel Workbook, providing the modified workbook.
+
+Type: [Function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)
+
+**Parameters**
+
+-   `errorMessage` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** any error message, or null if no errors
+-   `workbook` **Workbook** 
+
 ## FlowHandler
 
 FlowHandler class -- for handling IGC Flow Documents (XML)
@@ -91,6 +144,16 @@ Gets the Job details
 
 Returns **Asset** 
 
+### createFlowUnit
+
+Creates a new flowUnit
+
+**Parameters**
+
+-   `flowType` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** DESIGN or SYSTEM
+-   `xmlIdOfProcessor` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** the internal XML flow doc ID of the processing routine (ETL job, etc)
+-   `comment` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** an optional comment to include on the flow
+
 ### getEntryFlows
 
 Gets the details for ENTRY flows (data store-to-DataStage)
@@ -106,6 +169,12 @@ Returns **FlowList**
 ### getSystemFlows
 
 Gets the details for INSIDE flows (DataStage-to-DataStage)
+
+Returns **FlowList** 
+
+### getDesignFlows
+
+Gets the details of DESIGN flows
 
 Returns **FlowList** 
 
@@ -218,8 +287,9 @@ Adds an asset to the flow XML
 -   `xmlId` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** the unique ID of the asset within the XML flow document
 -   `matchByName` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** should be one of ['true', 'false']
 -   `virtualOnly` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** should be one of ['true', 'false']
--   `parentType` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** the classname of the asset's parent data type (e.g. ASCLModel.DatabaseTable)
--   `parentId` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** the unique ID of the asset's parent within the XML flow document
+-   `parentType` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** the classname of the asset's parent data type (e.g. ASCLModel.DatabaseTable)
+-   `parentId` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** the unique ID of the asset's parent within the XML flow document
+-   `additionalAttrs` **[Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)>?** any extra attributes to set on the asset, each element of the array being { name: "NameOfAttr", value: "ValueOfAttr" }
 
 ### addFlow
 
@@ -228,7 +298,7 @@ Adds a flow to the flow XML
 **Parameters**
 
 -   `flowsSection` **FlowList** the flows area into which to add the flow
--   `existingFlow` **Flow** an existing flow to update or replace
+-   `existingFlow` **Flow?** an existing flow to update or replace
 -   `sourceIDs` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** the sourceIDs to use in the flow mapping
 -   `targetIDs` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** the targetIDs to use in the flow mapping
 -   `comment` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** the comment to add to the flow mapping
@@ -407,3 +477,7 @@ Returns **any** Object
 Retrieves the operational metadata XML, including any modifications that have been made (i.e. replaced hostnames)
 
 Returns **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** the full XML of the operational metadata
+
+## AssetTypeFactory
+
+AssetTypeFactory class -- for encapsulating information about asset types
