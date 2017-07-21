@@ -95,7 +95,7 @@ prompt.start();
 prompt.get(inputPrompt, function (errPrompt, result) {
   igcrest.setConnection(envCtx.getRestConnection(result.password));
 
-  lineage.loadManuallyDefinedFlows(envCtx, inputFile, outputFile, function(err, results) {
+  lineage.loadManuallyDefinedFlows(igcrest, inputFile, outputFile, function(err, results) {
     if (err !== null) {
       console.error(err);
     } else {
