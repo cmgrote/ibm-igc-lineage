@@ -59,22 +59,12 @@ const argv = yargs
       describe: 'Password for invoking REST API',
       demand: false, requiresArg: true, type: 'string'
     })
-    .option('i', {
-      alias: 'ignore',
-      describe: 'Ignore existing assets',
-      demand: false, requiresArg: false, type: 'boolean'
-    })
     .help('h')
     .alias('h', 'help')
     .wrap(yargs.terminalWidth())
     .argv;
 
-const bIgnoreExisting = argv.ignore;
-
 const envCtx = new commons.EnvironmentContext(null, argv.authfile);
-if (bIgnoreExisting) {
-  argv.password = "unused";
-}
 
 prompt.override = argv;
 
@@ -101,16 +91,10 @@ prompt.get(inputPrompt, function (errPrompt, result) {
     wb = lineage.getTemplateForAssets(aTypes[i], wb);
   }
 
-  if (bIgnoreExisting) {
-    wb.xlsx.writeFile(argv.file).then(function() {
+  lineage.populateTemplateWithExistingAssets(igcrest, wb, function(err, resultingWB) {
+    resultingWB.xlsx.writeFile(argv.file).then(function() {
       console.log("Created template in: " + argv.file);
     });
-  } else {
-    lineage.populateTemplateWithExistingAssets(wb, function(err, resultingWB) {
-      resultingWB.xlsx.writeFile(argv.file).then(function() {
-        console.log("Created template in: " + argv.file);
-      });
-    });
-  }
+  });
 
 });
