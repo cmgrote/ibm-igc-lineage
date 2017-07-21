@@ -18,7 +18,6 @@
 
 const Excel = require('exceljs');
 const pd = require('pretty-data').pd;
-const igcrest = require('ibm-igc-rest');
 const fs = require('fs-extra');
 
 const FlowHandler = require('./classes/flow-handler');
@@ -68,7 +67,7 @@ const Lineage = (function() {
   };
 
   // Need to do this asynchronously given the REST calls
-  const _addExistingAssets = function(workbook, worksheet, writtenSheets, assetType, properties, callback, cbWithWorkbook) {
+  const _addExistingAssets = function(igcrest, workbook, worksheet, writtenSheets, assetType, properties, callback, cbWithWorkbook) {
 
     const includeProperties = [];
     const aProperties = Object.keys(properties);
@@ -143,11 +142,11 @@ const Lineage = (function() {
   /**
    * Adds entries to the specified workbook for any existing assets of that type in an IGC environment
    *
-   * @param {Workbook} workbook
-   * @param {Workbook} [wb] - an optional workbook into which to add this template
+   * @param {ibm-igc-rest} igcrest - the instantiation of an ibm-igc-rest object, with connection already configured
+   * @param {Workbook} workbook - the workbook into which to add existing assets
    * @param {workbookCallback} callback - callback that returns the modified workbook
    */
-  const populateTemplateWithExistingAssets = function(workbook, callback) {
+  const populateTemplateWithExistingAssets = function(igcrest, workbook, callback) {
 
     const aWorksheets = workbook.worksheets;
 
@@ -158,7 +157,7 @@ const Lineage = (function() {
       if (worksheet.name !== "Lineage Flows") {
         const assetType = AssetTypeFactory.getAssetTypeFromAssetName(worksheet.name);
         const properties = AssetTypeFactory.getAssetProperties(assetType);
-        _addExistingAssets(workbook, worksheet, aWrittenSheets, assetType, properties, _handleAnyErrorOrReturnWorkbook, callback);
+        _addExistingAssets(igcrest, workbook, worksheet, aWrittenSheets, assetType, properties, _handleAnyErrorOrReturnWorkbook, callback);
       }
     }
 
@@ -235,7 +234,7 @@ const Lineage = (function() {
       cellName.value = property;
       cellName.style = (area === "Application") ? _styles.createableRequired : _styles.noneditableRequired;
       col.width = Math.max(16, property.length);
-      if (property === "Type") {
+      /*if (property === "Type") {
         const cellList = worksheet.getCell(3, cellIdx);
         cellList.dataValidation = {
           type: 'list',
@@ -245,7 +244,7 @@ const Lineage = (function() {
           promptTitle: 'Select',
           prompt: 'Select the type of asset'
         };
-      } else if (property === "Details") {
+      } else*/ if (property === "RID or Name (for Files only)") {
         const cellValidation = worksheet.getCell(3, cellIdx);
         cellValidation.dataValidation = {
           type: 'custom',
@@ -253,7 +252,7 @@ const Lineage = (function() {
           formulae: [''],
           showInputMessage: true,
           promptTitle: 'Copy / paste',
-          prompt: 'Copy / paste RID of an existing asset, or Name of a File'
+          prompt: 'Copy / paste RID of an asset or Name of a File'
         };
         col.width = 50;
       } else if (property === "Name") {
@@ -291,9 +290,9 @@ const Lineage = (function() {
     let iCellCount = 1;
     let iAreaStart = 1;
 
-    const sourceDetails = [ "Type", "Details" ];
+    const sourceDetails = [ "RID or Name (for Files only)" ];
     const appDetails    = [ "Name" ];
-    const targetDetails = [ "Type", "Details" ];
+    const targetDetails = [ "RID or Name (for Files only)" ];
 
     iCellCount = _addDetailsToWorksheet("Source", sourceDetails, ws, iAreaStart, iCellCount);
     iAreaStart = iCellCount;
@@ -319,21 +318,29 @@ const Lineage = (function() {
       // lineage entry
       const parentName = assetDetailsInFlow[qualifiedId][parentType + ".name"];
       const parentQualifiedId = parentType + sep + parentName;
-      const parentXmlId = "ast" + (seqId++);
-      assetDetailsInFlow[qualifiedId]._parentType = parentType;
-      assetDetailsInFlow[qualifiedId]._parentXmlId = parentXmlId;
-      if (!assetDetailsInFlow.hasOwnProperty(parentQualifiedId)) {
-        assetDetailsInFlow[parentQualifiedId] = {};
-        assetCache[parentQualifiedId] = {};
+      // If it's already been setup by another asset, just re-use the existing ID
+      if (assetDetailsInFlow.hasOwnProperty(parentQualifiedId)) {
+        const parentXmlId = assetDetailsInFlow[parentQualifiedId]._xmlId;
+        assetDetailsInFlow[qualifiedId]._parentType = parentType;
+        assetDetailsInFlow[qualifiedId]._parentXmlId = parentXmlId;
+      } else {
+        // Otherwise create a new asset entry for the parent, with a new ID
+        const parentXmlId = "ast" + (seqId++);
+        assetDetailsInFlow[qualifiedId]._parentType = parentType;
+        assetDetailsInFlow[qualifiedId]._parentXmlId = parentXmlId;
+        if (!assetDetailsInFlow.hasOwnProperty(parentQualifiedId)) {
+          assetDetailsInFlow[parentQualifiedId] = {};
+          assetCache[parentQualifiedId] = {};
+        }
+        assetDetailsInFlow[parentQualifiedId]._type = parentType;
+        assetDetailsInFlow[parentQualifiedId]._name = parentName;
+        assetDetailsInFlow[parentQualifiedId]._id = "";
+        assetDetailsInFlow[parentQualifiedId]._xmlId = parentXmlId;
+        assetCache[parentQualifiedId]._type = parentType;
+        assetCache[parentQualifiedId]._name = parentName;
+        assetCache[parentQualifiedId]._id = "";
+        assetCache[parentQualifiedId]._xmlId = parentXmlId;
       }
-      assetDetailsInFlow[parentQualifiedId]._type = parentType;
-      assetDetailsInFlow[parentQualifiedId]._name = parentName;
-      assetDetailsInFlow[parentQualifiedId]._id = "";
-      assetDetailsInFlow[parentQualifiedId]._xmlId = parentXmlId;
-      assetCache[parentQualifiedId]._type = parentType;
-      assetCache[parentQualifiedId]._name = parentName;
-      assetCache[parentQualifiedId]._id = "";
-      assetCache[parentQualifiedId]._xmlId = parentXmlId;
     }
 
     return seqId;
@@ -342,15 +349,11 @@ const Lineage = (function() {
 
   const _getAssetDetailsFromCache = function(assetCache, qualifiedId, sep) {
 
-    const type = qualifiedId.substring(0, qualifiedId.indexOf(sep));
-    const id   = qualifiedId.substring(type.length + sep.length);
-    let assetDetails = assetCache[id];
-    if (type === "Application") {
-      assetDetails = assetCache["application" + sep + id];
-    } else if (type === "File") {
-      assetDetails = assetCache["file" + sep + id];
-    } else if (type === "host") {
-      assetDetails = assetCache["host" + sep + id];
+    let assetDetails = null;
+    if (assetCache.hasOwnProperty(qualifiedId)) {
+      assetDetails = assetCache[qualifiedId];
+    } else if (assetCache.hasOwnProperty("file" + sep + qualifiedId)) {
+      assetDetails = assetCache["file" + sep + qualifiedId];
     }
     return assetDetails;
 
@@ -360,12 +363,12 @@ const Lineage = (function() {
    * Loads lineage information as specified in the provided Excel file -- which should have been produced first by the getTemplateForLineage function
    *
    * @see module:ibm-igc-lineage~getTemplateForLineage
-   * @param {EnvironmentContext} envCtx - an environment context from ibm-iis-commons
+   * @param {ibm-igc-rest} igcrest - the instantiation of an ibm-igc-rest object, with connection already configured
    * @param {string} inputFile - name of the .xlsx file containing lineage and any new asset information
    * @param {string} [outputFile] - optional name of an output file, which if provided will avoid automatically sending lineage to the server
    * @param {processCallback} callback - callback that handles the response of processing
    */
-  const loadManuallyDefinedFlows = function(envCtx, inputFile, outputFile, callback) {
+  const loadManuallyDefinedFlows = function(igcrest, inputFile, outputFile, callback) {
 
     // Needs to: 
     // 1. build up a cache of all other asset details (we'll need to output fully-composed assets in next step)
@@ -385,6 +388,7 @@ const Lineage = (function() {
       let lineageFlowWS = null;
 
       // 1. build up a cache of all asset details (we'll need to output fully-composed assets in next step)
+      console.log("1. build up a cache of all asset details (we'll need to output fully-composed assets in next step)");
       for (let i = 0; i < aWorksheets.length; i++) {
         const worksheet = aWorksheets[i];
         const assetName = worksheet.name;
@@ -408,6 +412,7 @@ const Lineage = (function() {
             }
             // Minor hack so we don't have to refer to these Extended Data Sources by RID
             if (assetType === "file" || assetType === "application") {
+              console.log("   +- adding to cache: " + assetType + typeAndIdSep + create._name);
               hmAssetCache[assetType + typeAndIdSep + create._name] = create;
             } else {
               hmAssetCache[create._id] = create;
@@ -420,25 +425,27 @@ const Lineage = (function() {
       }
 
       // 2. create a lineage flow XML file (via flow-handler) with the source, app, target flows
+      console.log("2. create a lineage flow XML file (via flow-handler) with the source, app, target flows");
       const fh = new FlowHandler();
       const assetDetailsInFlow = {};
       
       //    b. the flows amongst them (doing this first to optimise and only bother outputting assets we need to)
+      console.log("   b. the flows amongst them (doing this first to optimise and only bother outputting assets we need to)");
       const flowCount = lineageFlowWS.actualRowCount;
       for (let j = 3; j < (flowCount + 1); j++) {
         
         const row = lineageFlowWS.getRow(j);
         
         const rowVals = row.values;
-        const srcType = rowVals[1];
-        const srcId   = rowVals[2];
-        const appId   = rowVals[3];
-        const tgtType = rowVals[4];
-        const tgtId   = rowVals[5];
+        //const srcType = rowVals[1];
+        const srcId   = rowVals[1];
+        const appId   = rowVals[2];
+        //const tgtType = rowVals[4];
+        const tgtId   = rowVals[3];
 
-        const src = srcType + typeAndIdSep + srcId;
-        const tgt = tgtType + typeAndIdSep + tgtId;
-        const app = "Application" + typeAndIdSep + appId;
+        const src = srcId;
+        const tgt = tgtId;
+        const app = "application" + typeAndIdSep + appId; // qualified as we can be certain it is an app -- above could be RID or File name
 
         if (!assetDetailsInFlow.hasOwnProperty(src)) {
           assetDetailsInFlow[src] = _getAssetDetailsFromCache(hmAssetCache, src, typeAndIdSep);
@@ -465,11 +472,22 @@ const Lineage = (function() {
       }
 
       //    a. the source, app, target assets
+      console.log("   a. the source, app, target assets");
       const aAssetKeys = Object.keys(assetDetailsInFlow);
       for (let i = 0; i < aAssetKeys.length; i++) {
         const typeAndId = aAssetKeys[i];
+        console.log("      |- qualifedId: " + typeAndId);
         const assetDetails = _getAssetDetailsFromCache(hmAssetCache, typeAndId, typeAndIdSep);
+        console.log("      +- cache result: " + assetDetails);
         const xmlId = assetDetailsInFlow[typeAndId]._xmlId;
+        let extraAttrs = [];
+        if (assetDetails._type === "data_file") {
+          // data_file's also need to have their path provided as an attribute
+          extraAttrs.push({
+            name: "path",
+            value: assetDetails.path
+          });
+        }
         fh.addAsset(
           assetDetails._type,
           assetDetails._name,
@@ -478,10 +496,12 @@ const Lineage = (function() {
           true,
           false,
           (assetDetailsInFlow[typeAndId].hasOwnProperty("_parentType")) ? assetDetailsInFlow[typeAndId]._parentType : null,
-          (assetDetailsInFlow[typeAndId].hasOwnProperty("_parentXmlId")) ? assetDetailsInFlow[typeAndId]._parentXmlId : null);
+          (assetDetailsInFlow[typeAndId].hasOwnProperty("_parentXmlId")) ? assetDetailsInFlow[typeAndId]._parentXmlId : null,
+          extraAttrs);
       }
 
       // 3. invoke the REST API with the lineage flow XML file to create the lineage - OR - output XML file
+      console.log("3. invoke the REST API with the lineage flow XML file to create the lineage - OR - output XML file");
       const flowXML = fh.getCustomisedXML();
       const bOutput = (outputFile !== undefined && outputFile !== "");
   
