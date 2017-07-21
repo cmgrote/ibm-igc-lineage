@@ -374,8 +374,9 @@ class FlowHandler {
    * @param {string} virtualOnly - should be one of ['true', 'false']
    * @param {string} [parentType] - the classname of the asset's parent data type (e.g. ASCLModel.DatabaseTable)
    * @param {string} [parentId] - the unique ID of the asset's parent within the XML flow document
+   * @param {Object[]} [additionalAttrs] - any extra attributes to set on the asset, each element of the array being { name: "NameOfAttr", value: "ValueOfAttr" }
    */
-  addAsset(className, name, rid, xmlId, matchByName, virtualOnly, parentType, parentId) {
+  addAsset(className, name, rid, xmlId, matchByName, virtualOnly, parentType, parentId, additionalAttrs) {
     const eAsset = this._doc.createElement("asset");
     eAsset.setAttribute("class", className);
     eAsset.setAttribute("repr", name);
@@ -387,6 +388,14 @@ class FlowHandler {
     eAttr.setAttribute("name", "name");
     eAttr.setAttribute("value", name);
     eAsset.appendChild(eAttr);
+    if (additionalAttrs !== null) {
+      for (let i = 0; i < additionalAttrs.length; i++) {
+        const eAttrExtra = this._doc.createElement("attribute");
+        eAttrExtra.setAttribute("name", additionalAttrs[i].name);
+        eAttrExtra.setAttribute("value", additionalAttrs[i].value);
+        eAsset.appendChild(eAttrExtra);
+      }
+    }
     if (parentType !== null && parentId !== null) {
       const eRef = this._doc.createElement("reference");
       eRef.setAttribute("name", parentType);
