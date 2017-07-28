@@ -34,9 +34,9 @@ class AssetTypeFactory {
 
   static getDataAssetTypes() {
     return [
-      "File",
-      "Database",
-      "Data File"
+      "Files",
+      "Databases",
+      "Data Files"
     ];
   }
 
@@ -64,17 +64,21 @@ class AssetTypeFactory {
   static getAssetProperties(assetType) {
     const assetTypeToProperties = {
       "application": {
+        _id:                  { displayName: "RID", isRequired: true },
         _name:                { displayName: "Name", isRequired: true },
         short_description:    { displayName: "Short Description", isRequired: false },
         long_description:     { displayName: "Long Description", isRequired: false }
       },
       "file": {
+        _id:                  { displayName: "RID", isRequired: true },
+        _type:                { displayName: "Type", isRequired: true },
         _name:                { displayName: "Name", isRequired: true },
         short_description:    { displayName: "Short Description", isRequired: false },
         long_description:     { displayName: "Long Description", isRequired: false }
       },
       "database": {
         _id:                  { displayName: "RID", isRequired: true },
+        _type:                { displayName: "Type", isRequired: true },
         _name:                { displayName: "Name", isRequired: true },
         "host.name":          { displayName: "Host", isRequired: true },
         short_description:    { displayName: "Short Description", isRequired: false },
@@ -82,6 +86,7 @@ class AssetTypeFactory {
       },
       "data_file": {
         _id:                  { displayName: "RID", isRequired: true },
+        _type:                { displayName: "Type", isRequired: true },
         _name:                { displayName: "Name", isRequired: true },
         "host.name":          { displayName: "Host", isRequired: true },
         path:                 { displayName: "Path", isRequired: true },
@@ -93,6 +98,19 @@ class AssetTypeFactory {
       throw new Error("Unable to find a asset type named '" + assetType + "'.");
     }
     return assetTypeToProperties[assetType];
+  }
+
+  static getDataContainerHeaders() {
+    return {
+      __spreadsheetId:        { displayName: "Qualified ID", isRequired: true },
+      _id:                    { displayName: "RID", isRequired: true },
+      _type:                  { displayName: "Type", isRequired: true },
+      _name:                  { displayName: "Name", isRequired: true },
+      "host.name":            { displayName: "Host", isRequired: false },
+      path:                   { displayName: "Path", isRequired: false },
+      short_description:      { displayName: "Short Description", isRequired: false },
+      long_description:       { displayName: "Long Description", isRequired: false }
+    };
   }
 
 }

@@ -37,8 +37,6 @@ const igcrest = require('ibm-igc-rest');
 const prompt = require('prompt');
 prompt.colors = false;
 
-const AssetTypeFactory = require('../classes/asset-type-factory');
-
 // Command-line setup
 const yargs = require('yargs');
 const argv = yargs
@@ -84,17 +82,14 @@ prompt.start();
 prompt.get(inputPrompt, function (errPrompt, result) {
   igcrest.setConnection(envCtx.getRestConnection(result.password));
 
-  const aTypes = AssetTypeFactory.getAssetsToExtract();
-
-  let wb = lineage.getTemplateForLineage();
-  for (let i = 0; i < aTypes.length; i++) {
-    wb = lineage.getTemplateForAssets(aTypes[i], wb);
-  }
-
-  lineage.populateTemplateWithExistingAssets(igcrest, wb, function(err, resultingWB) {
-    resultingWB.xlsx.writeFile(argv.file).then(function() {
-      console.log("Created template in: " + argv.file);
-    });
+  const wb = new lineage.LineageWorkbook();
+  wb.populateWithExistingAssets(igcrest, function(err) {
+    if (err !== null) {
+      console.log("ERROR: " + err);
+    } else {
+      wb.addValidationsToLineageSheet();
+      wb.writeTemplate(argv.file);
+    }
   });
 
 });

@@ -95,11 +95,18 @@ prompt.start();
 prompt.get(inputPrompt, function (errPrompt, result) {
   igcrest.setConnection(envCtx.getRestConnection(result.password));
 
-  lineage.loadManuallyDefinedFlows(igcrest, inputFile, outputFile, function(err, results) {
-    if (err !== null) {
-      console.error(err);
+  const wb = new lineage.LineageWorkbook();
+  wb.loadFromFile(inputFile, function() {
+    if (bOutput) {
+      wb.writeFlowXML(outputFile);
     } else {
-      console.log(results);
+      wb.uploadFlowXMLToIGC(igcrest, function(errUpload) {
+        if (errUpload !== null) {
+          console.error(errUpload);
+        } else {
+          console.log("Lineage successfully uploaded.");
+        }
+      });
     }
   });
 
