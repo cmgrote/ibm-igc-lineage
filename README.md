@@ -18,59 +18,6 @@ Re-usable functions for handling lineage flow documents (XML) and operational me
 
 -   **license**: Apache-2.0
 
-## populateTemplateWithExistingAssets
-
-Adds entries to the specified workbook for any existing assets of that type in an IGC environment
-
-**Parameters**
-
--   `igcrest` **ibm-igc-rest** the instantiation of an ibm-igc-rest object, with connection already configured
--   `workbook` **Workbook** the workbook into which to add existing assets
--   `callback` **[workbookCallback](#workbookcallback)** callback that returns the modified workbook
-
-## getTemplateForAssets
-
-Returns a template (list of headers & pre-defined assets) for the asset specified
-
-**Parameters**
-
--   `assetName` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
--   `wb` **Workbook?** an optional workbook into which to add this template
-
-Returns **any** Workbook an Excel Workbook with the template
-
-## getTemplateForLineage
-
-Returns a template (list of headers) for defining lineage flows
-
-**Parameters**
-
--   `wb` **Workbook?** an optional workbook into which to add this template
-
-Returns **any** Workbook an Excel Workbook with the template
-
-## loadManuallyDefinedFlows
-
-Loads lineage information as specified in the provided Excel file -- which should have been produced first by the getTemplateForLineage function
-
-**Parameters**
-
--   `igcrest` **ibm-igc-rest** the instantiation of an ibm-igc-rest object, with connection already configured
--   `inputFile` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** name of the .xlsx file containing lineage and any new asset information
--   `outputFile` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** optional name of an output file, which if provided will avoid automatically sending lineage to the server
--   `callback` **processCallback** callback that handles the response of processing
-
-## workbookCallback
-
-This callback is invoked as the result of modifying an Excel Workbook, providing the modified workbook.
-
-Type: [Function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)
-
-**Parameters**
-
--   `errorMessage` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** any error message, or null if no errors
--   `workbook` **Workbook** 
-
 ## FlowHandler
 
 FlowHandler class -- for handling IGC Flow Documents (XML)
@@ -477,6 +424,74 @@ Returns **any** Object
 Retrieves the operational metadata XML, including any modifications that have been made (i.e. replaced hostnames)
 
 Returns **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** the full XML of the operational metadata
+
+## LineageWorkbook
+
+LineageWorkbook class -- for capturing information about data lineage, manually
+
+### loadFromFile
+
+Loads workbook from the provided XLSX file
+
+**Parameters**
+
+-   `filename` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+-   `callback` **[completeCallback](#completecallback)** 
+
+### addValidationsToLineageSheet
+
+Add entry assistance (drop-down list) validations to the lineage sheet.
+Note: should only be done after populating the workbook with existing assets
+
+### populateWithExistingAssets
+
+Populate the lineage workbook with existing assets from an environment
+
+**Parameters**
+
+-   `igcrest` **ibm-igc-rest** the instantiation of an ibm-igc-rest object, with connection already configured
+-   `callback` **[completeCallback](#completecallback)** callback that returns once population is completed
+
+### writeTemplate
+
+Write out the template to the specified file
+
+**Parameters**
+
+-   `filename` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+
+### generateFlowXML
+
+Generate a flow XML document that contains the lineage definitions of this workbook
+
+Returns **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** XML flow document representation of the lineage definitions in the workbook
+
+### uploadFlowXMLToIGC
+
+Upload the lineage flow XML for the workbook to IGC
+
+**Parameters**
+
+-   `igcrest` **ibm-igc-rest** the instantiation of an ibm-igc-rest object, with connection already configured
+-   `callback` **[completeCallback](#completecallback)** 
+
+### writeFlowXML
+
+Write out the lineage flow XML for the workbook to the specified file
+
+**Parameters**
+
+-   `filename` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+
+## completeCallback
+
+This callback is invoked as the result of work completing, providing a status.
+
+Type: [Function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)
+
+**Parameters**
+
+-   `errorMessage` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** any error message, or null if no errors
 
 ## AssetTypeFactory
 
