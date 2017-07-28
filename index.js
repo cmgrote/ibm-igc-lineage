@@ -546,6 +546,6 @@ const Lineage = (function() {
 module.exports = Lineage;
 
 if (typeof require === 'function') {
-  exports.FlowHandler = FlowHandler;
-  exports.OMDHandler = OMDHandler;
+  module.exports.FlowHandler = FlowHandler;
+  module.exports.OMDHandler = OMDHandler;
 }
