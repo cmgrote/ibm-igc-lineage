@@ -21,27 +21,32 @@
 /**
  * @file Example automation of lineage customisation for jobs that either normalise or de-normalise column-level data, and where the ultimate source / target column name are the same
  * @license Apache-2.0
+ * @requires ibm-iis-commons
  * @requires ibm-igc-rest
  * @requires ibm-igc-lineage
  * @requires fs-extra
  * @requires pretty-data
  * @requires yargs
+ * @requires prompt
  * @param f {string} - XML file for which to customise lineage
  * @example
  * // creates customised lineage flow XML into /data/semanticLineage/mappedFlows/output/prjName__jobName.xml and re-detects lineage for the job
- * ./createColumnLevelPivots.js -f /data/semanticLineage/originalFlows/prjName__jobName.xml -r columnRIDs.json -d hostname:9445 -u isadmin -p isadmin
+ * ./createColumnLevelPivots.js -f /data/semanticLineage/originalFlows/prjName__jobName.xml -r columnRIDs.json
  * @see getLineageCustomisationRIDs.js
  */
 
 const fs = require('fs-extra');
 const pd = require('pretty-data').pd;
+const commons = require('ibm-iis-commons');
 const igcrest = require('ibm-igc-rest');
 const igclineage = require('ibm-igc-lineage');
+const prompt = require('prompt');
+prompt.colors = false;
 
 // Command-line setup
 const yargs = require('yargs');
 const argv = yargs
-    .usage('Usage: $0 -f <path> -r <path> -d <host>:<port> -u <user> -p <password>')
+    .usage('Usage: $0 -f <path> -r <path> -a <authfile> -p <password>')
     .option('f', {
       alias: 'file',
       describe: 'XML file for which to customise lineage',
@@ -52,21 +57,15 @@ const argv = yargs
       describe: 'JSON file of column RIDs that need custom lineage',
       demand: true, requiresArg: true, type: 'string'
     })
-    .env('DS')
-    .option('d', {
-      alias: 'domain',
-      describe: 'Host and port for invoking IGC REST',
-      demand: true, requiresArg: true, type: 'string'
-    })
-    .option('u', {
-      alias: 'deployment-user',
-      describe: 'User for invoking IGC REST',
-      demand: true, requiresArg: true, type: 'string'
+    .option('a', {
+      alias: 'authfile',
+      describe: 'Authorisation file containing environment context',
+      requiresArg: true, type: 'string'
     })
     .option('p', {
-      alias: 'deployment-user-password',
-      describe: 'Password for invoking IGC REST',
-      demand: true, requiresArg: true, type: 'string'
+      alias: 'password',
+      describe: 'Password for invoking REST API',
+      demand: false, requiresArg: true, type: 'string'
     })
     .help('h')
     .alias('h', 'help')
@@ -76,59 +75,79 @@ const argv = yargs
 // Base settings
 const inputFile = argv.file;
 const mapFile = argv.rids;
-const host_port = argv.domain.split(":");
-igcrest.setAuth(argv.deploymentUser, argv.deploymentUserPassword);
-igcrest.setServer(host_port[0], host_port[1]);
-
-const pivotColumns = JSON.parse(fs.readFileSync(mapFile, 'utf8'));
-let bHasBeenCustomised = false;
 
 // To keep generated IDs unique and retrievable
 let id_gen = 0;
 let ds_rid_gen = 0;
 const hmObjectIdentitiesToIds = {};
+let bHasBeenCustomised = false;
 
-// Read input XML
-const xmldata = fs.readFileSync(inputFile, 'utf8');
-const fh = new igclineage.FlowHandler();
-fh.parseXML(xmldata.toString());
+const envCtx = new commons.EnvironmentContext(null, argv.authfile);
 
-// ... get basic information from XML
-const eProj = fh.getProjectNode();
-const eJob = fh.getJobNode();
-console.log("Customising lineage for: " + fh.getAssetName(eProj) + ", " + fh.getAssetName(eJob) + " (" + fh.getAssetRID(eJob) + ")");
+prompt.override = argv;
 
-const eEntryFlows = fh.getEntryFlows();
-const eExitFlows = fh.getExitFlows();
-const eSystemFlows = fh.getSystemFlows();
+const inputPrompt = {
+  properties: {
+    password: {
+      hidden: true,
+      required: true,
+      message: "Please enter the password for user '" + envCtx.username + "': "
+    }
+  }
+};
+prompt.message = "";
+prompt.delimiter = "";
 
-// Kick-off the automated customisation...
-const innerFlows = fh.getSubflows(eSystemFlows);
-for (let i = 0; i < innerFlows.length; i++) {
-  const eInnerFlow = innerFlows[i];
-  const sSources = eInnerFlow.getAttribute("sourceIDs");
-  const sTargets = eInnerFlow.getAttribute("targetIDs");
-  resolveSourceToTargetMappings(eEntryFlows, eExitFlows, eSystemFlows, sSources, sTargets);
-}
+prompt.start();
+prompt.get(inputPrompt, function (errPrompt, result) {
 
-if (bHasBeenCustomised) {
-  // Output the results
-  const sFlowFilename = getFlowFilename(eProj, eJob);
-  outputCustomXML(sFlowFilename);
-  copyOriginalToMapped(sFlowFilename);
-  igcrest.detectLineageForJob(fh.getAssetRID(eJob), function(err, resLineage) {
-    console.log("... lineage re-detection status: " + resLineage.message);
-  });
-} else {
-  console.log("... no customisation needed, default lineage retained.");
-}
+  igcrest.setConnection(envCtx.getRestConnection(result.password));
+
+  const pivotColumns = JSON.parse(fs.readFileSync(mapFile, 'utf8'));
+  
+  // Read input XML
+  const xmldata = fs.readFileSync(inputFile, 'utf8');
+  const fh = new igclineage.FlowHandler();
+  fh.parseXML(xmldata.toString());
+  
+  // ... get basic information from XML
+  const eProj = fh.getProjectNode();
+  const eJob = fh.getJobNode();
+  console.log("Customising lineage for: " + fh.getAssetName(eProj) + ", " + fh.getAssetName(eJob) + " (" + fh.getAssetRID(eJob) + ")");
+  
+  const eEntryFlows = fh.getEntryFlows();
+  const eExitFlows = fh.getExitFlows();
+  const eSystemFlows = fh.getSystemFlows();
+  
+  // Kick-off the automated customisation...
+  const innerFlows = fh.getSubflows(eSystemFlows);
+  for (let i = 0; i < innerFlows.length; i++) {
+    const eInnerFlow = innerFlows[i];
+    const sSources = eInnerFlow.getAttribute("sourceIDs");
+    const sTargets = eInnerFlow.getAttribute("targetIDs");
+    resolveSourceToTargetMappings(fh, pivotColumns, eEntryFlows, eExitFlows, eSystemFlows, sSources, sTargets);
+  }
+  
+  if (bHasBeenCustomised) {
+    // Output the results
+    const sFlowFilename = getFlowFilename(fh, eProj, eJob);
+    outputCustomXML(fh, sFlowFilename);
+    copyOriginalToMapped(sFlowFilename);
+    igcrest.detectLineageForJob(fh.getAssetRID(eJob), function(err, resLineage) {
+      console.log("... lineage re-detection status: " + resLineage.message);
+    });
+  } else {
+    console.log("... no customisation needed, default lineage retained.");
+  }
+
+});
 
 // Most of the work: the 'sources' and 'targets' are the DataStage column-based ones (system flows)
 // - for each of the source IDs, determine what data store (column) feeds that DS-column
 // - for each of the target IDs, determine what data store (column) is written by that DS-column
 // - check each column (read or written) for whether it matches one marked as a pivot
 // - if so, handle it accordingly (add a new conditional column and re-map the flows to this new column)
-function resolveSourceToTargetMappings(entryFlows, exitFlows, systemFlows, sources, targets) {
+function resolveSourceToTargetMappings(fh, pivotColumns, entryFlows, exitFlows, systemFlows, sources, targets) {
   
   let bSourceIsPivot = false;
   let bTargetIsPivot = false;
@@ -164,8 +183,8 @@ function resolveSourceToTargetMappings(entryFlows, exitFlows, systemFlows, sourc
 
         if (bSourceIsPivot) {
           const sPivotColName = getConditionalPivotColumnName(sSourceColName, sTargetColName);
-          const sNewSourceColId = injectSnippetForPivotColumn(sPivotColName, eSource, fh.getAssetById(sSourceId));
-          injectSnippetForPivotFlowAsSource(
+          const sNewSourceColId = injectSnippetForPivotColumn(fh, sPivotColName, eSource, fh.getAssetById(sSourceId));
+          injectSnippetForPivotFlowAsSource(fh,
                         sNewSourceColId,
                         "ds" + sNewSourceColId,
                         "ds" + sNewSourceColId,
@@ -178,8 +197,8 @@ function resolveSourceToTargetMappings(entryFlows, exitFlows, systemFlows, sourc
 
         if (bTargetIsPivot) {
           const sPivotColName = getConditionalPivotColumnName(sTargetColName, sSourceColName);
-          const sNewTargetColId = injectSnippetForPivotColumn(sPivotColName, eTarget, fh.getAssetById(sTargetId));
-          injectSnippetForPivotFlowAsTarget(
+          const sNewTargetColId = injectSnippetForPivotColumn(fh, sPivotColName, eTarget, fh.getAssetById(sTargetId));
+          injectSnippetForPivotFlowAsTarget(fh,
                         "ds" + sNewTargetColId,
                         sNewTargetColId,
                         sSourceId,
@@ -208,7 +227,7 @@ function getPivotVirtualTableName(pivotTable) {
 }
 
 // Adds the XML just for the new conditional columns themselves (both database and datastage)
-function injectSnippetForPivotColumn(pivotColName, ePivotCol, ePivotDS) {
+function injectSnippetForPivotColumn(fh, pivotColName, ePivotCol, ePivotDS) {
 
   // Table first
   const colParentId = fh.getParentAssetId(ePivotCol);
@@ -255,7 +274,7 @@ function getIdForObjectIdentity(identity) {
 }
 
 // Adds the XML just for the new flow, from new conditional database column to new conditional datastage column (inbound)
-function injectSnippetForPivotFlowAsSource(sEntrySourceId, sEntryTargetId, sSystemSourceId, sSystemTargetId, entryFlows, systemFlows, commentForEntry, commentForSystem) {
+function injectSnippetForPivotFlowAsSource(fh, sEntrySourceId, sEntryTargetId, sSystemSourceId, sSystemTargetId, entryFlows, systemFlows, commentForEntry, commentForSystem) {
 
   // ENTRY flows -- create new flow from conditional database column to conditional datastage column
   const eExistingMappingEntry = fh.getSubflowBySourceId(entryFlows, sEntrySourceId);
@@ -268,7 +287,7 @@ function injectSnippetForPivotFlowAsSource(sEntrySourceId, sEntryTargetId, sSyst
 }
 
 // Adds the XML just for the new flow from new conditional datastage column to new conditional database column (outbound)
-function injectSnippetForPivotFlowAsTarget(sExitSourceId, sExitTargetId, sSystemSourceId, sSystemTargetId, exitFlows, systemFlows, commentForExit, commentForSystem) {
+function injectSnippetForPivotFlowAsTarget(fh, sExitSourceId, sExitTargetId, sSystemSourceId, sSystemTargetId, exitFlows, systemFlows, commentForExit, commentForSystem) {
 
   // EXIT flows -- create a new flow from conditional datastage column to conditional database column
   const eExistingMappingExit = fh.getSubflowBySourceId(exitFlows, sExitSourceId);
@@ -281,10 +300,10 @@ function injectSnippetForPivotFlowAsTarget(sExitSourceId, sExitTargetId, sSystem
 }
 
 // Basic functions to output the customised lineage
-function getFlowFilename(eProj, eJob) {
+function getFlowFilename(fh, eProj, eJob) {
   return fh.getAssetName(eProj) + "__" + fh.getAssetName(eJob) + ".xml";
 }
-function outputCustomXML(sFilename) {
+function outputCustomXML(fh, sFilename) {
 
   const xmlOut = fh.getCustomisedXML();
   const options = {
