@@ -388,7 +388,7 @@ class FlowHandler {
     eAttr.setAttribute("name", "name");
     eAttr.setAttribute("value", name);
     eAsset.appendChild(eAttr);
-    if (additionalAttrs !== null) {
+    if (typeof additionalAttrs !== 'undefined' && additionalAttrs !== null) {
       for (let i = 0; i < additionalAttrs.length; i++) {
         const eAttrExtra = this._doc.createElement("attribute");
         eAttrExtra.setAttribute("name", additionalAttrs[i].name);
